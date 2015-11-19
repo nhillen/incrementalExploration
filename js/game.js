@@ -8,18 +8,81 @@ var factoryCost = 25;
 var factoryValue = 2;
 var checkVals = ["totalWidgets", "factories", "factoryCost", "widgetsPerSecond"];
 
+
+var counters {
+	"ore" : 0,
+	"money" : 0,
+	"widgets" : 0,
+	"widgetsPerClick" : 1,
+	"widgetsPerSecond" : 0,
+	"tools" : 0
+}
+
+// this instantiates the Producer Class
+var toolsButton = new Producer({
+	"UIname"     = "#buyFactory",
+	"showReq"    = 1,
+	"showType"   = "widgets",
+	"cost"       = 0,
+	"costType"	 = "widgets",
+	"costScaler" = 1.25,
+	"buttonTag"  = "Tools Cost",
+	"gainType"	 = "tools",
+	"gainAmount" = 1
+});
+
+
+function Producer( vars )
+{
+	var v = vars;/* VARIABLES
+	"UIname"     = "button",
+	"showReq"    = 0,
+	"showType"   = "money",
+	"cost"       = 0,
+	"costType"	 = "money",
+	"costScaler" = 1.2,
+	"buttonTag"  = "cost",
+	"gainType"	 = "tools",
+	"gainAmount" = 1
+    */
+	var bar  = $(this.v[UIname]);
+	
+	this.draw(){
+		if( !bar ) // if we haven't made the button, make it now
+			bar = $(this.v[name])
+			
+		if( counters[this.v[showReqType]] >= this.v[showReq] ){
+			this.bar.show();
+			this.bar.prop('disabled', false);
+        
+		} else {
+			this.bar.prop('disabled', true);
+		}
+		bar.prop( 'value, v[buttonTag]+": "+v[cost],);
+	}
+	
+	this.clicked(){
+		if( counters[v[costType]] >= v[cost] )
+		{
+			counters[v[costType]] -= v[cost];
+			Math.round( v[cost] = v[cost]*v[costScaler] ) ;
+			counters[v[gainType]] += v[gainAmount];
+		}
+		drawUI();		
+	}
+}
+
 function runLoop(){
     totalWidgets += widgetsPerSecond;
-    
 }
 
 function drawUI(){
     var outputText =
-        totalWidgets + " total widgets" + "<br/>" +
-        widgetsPerSecond + " widgets per second" + "<br/>" +
-        factories + " factories" + "<br/>";
+        counters[totalWidgets] + " total widgets" + "<br/>" +
+        counters[widgetsPerSecond] + " widgets per second" + "<br/>" +
+        counters[tools] + " tools" + "<br/>";
     
-    if(totalWidgets > factoryCost){
+ /*   if(totalWidgets > factoryCost){
         factoryBar.show();
         factoryBar.prop('disabled', false);
         
@@ -28,10 +91,13 @@ function drawUI(){
     }
     
     factoryBar.prop('value', "Buy Factory - " + factoryCost);
+	*/
+	
+	toolsButton.draw();
     widgetBar.html(outputText);
 }
 
-function buyFactory(){
+/*function buyFactory(){
     if(totalWidgets > factoryCost){
         totalWidgets -= factoryCost;
         factories += 1;
@@ -42,7 +108,7 @@ function buyFactory(){
     factoryBar.text("Buy Factory - " + factoryCost);
     writeData();
     drawUI();
-}
+}*/
 
 function readSaveData(){
     _.each(checkVals,function(name){
@@ -52,10 +118,10 @@ function readSaveData(){
        }
     });
     
-    if(factories > 0){
+    /*if(factories > 0){
         factoryBar.show();
         factoryBar.text("Buy Factory - " + factoryCost);
-    }
+    }*/
 }
 
 function writeData(){
@@ -65,7 +131,7 @@ function writeData(){
 }
 
 function clickBar(){
-    totalWidgets += widgetsPerClick;
+    counters[totalWidgets] += counters[widgetsPerClick];
     drawUI();
 }
 
