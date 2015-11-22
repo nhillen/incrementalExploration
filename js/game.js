@@ -1,15 +1,10 @@
 var widgetBar = $("#widgetCounter");
-var factoryBar = $("#buyFactory");
-var totalWidgets = 0;
-var widgetsPerSecond = 0;
-var widgetsPerClick = 1;
-var factories = 0;
-var factoryCost = 25;
-var factoryValue = 2;
 var checkVals = ["totalWidgets", "factories", "factoryCost", "widgetsPerSecond"];
 
 
-var counters {
+var counters = {
+	"none" : 0,
+	"time" : 0,
 	"ore" : 0,
 	"money" : 0,
 	"widgets" : 0,
@@ -19,22 +14,46 @@ var counters {
 }
 
 // this instantiates the Producer Class
-var toolsButton = new Producer({
-	"UIname"     = "#buyFactory",
-	"showReq"    = 1,
-	"showType"   = "widgets",
-	"cost"       = 0,
-	"costType"	 = "widgets",
-	"costScaler" = 1.25,
-	"buttonTag"  = "Tools Cost",
-	"gainType"	 = "tools",
-	"gainAmount" = 1
+var makeWidgetButton = new Producer({
+	"UIname"     : "#btnMakeWidget",
+	"showReq"    : 0,
+	"showType"   : "none",
+	"cost"       : 0,
+	"costType"	 : "none",
+	"costScaler" : 0,
+	"buttonTag"  : "Make Widget",
+	"gainType"	 : "widgets",
+	"gainAmount" : 1
 });
 
+var sellWidgetButton = new Producer({
+	"UIname"     : "#btnSellWidgets",
+	"showReq"    : 1,
+	"showType"   : "widgets",
+	"cost"       : 1,
+	"costType"	 : "widgets",
+	"costScaler" : 1,
+	"buttonTag"  : "Sell Widgets",
+	"gainType"	 : "money",
+	"gainAmount" : 5
+});
+
+var toolsButton = new Producer({
+	"UIname"     : "#btnBuyTool",
+	"showReq"    : 1,
+	"showType"   : "widgets",
+	"cost"       : 50,
+	"costType"	 : "money",
+	"costScaler" : 1.25,
+	"buttonTag"  : "Tools Cost",
+	"gainType"	 : "tools",
+	"gainAmount" : 1
+});
 
 function Producer( vars )
 {
-	var v = vars;/* VARIABLES
+	var bar;
+	var v = vars;/* VARIABLES ***
 	"UIname"     = "button",
 	"showReq"    = 0,
 	"showType"   = "money",
@@ -44,24 +63,24 @@ function Producer( vars )
 	"buttonTag"  = "cost",
 	"gainType"	 = "tools",
 	"gainAmount" = 1
-    */
-	var bar  = $(this.v[UIname]);
+    *****************************/ 
 	
-	this.draw(){
-		if( !bar ) // if we haven't made the button, make it now
-			bar = $(this.v[name])
+	this.draw = function(){
+		// If the button hasn't been initialized, then find it
+			if( ! bar )
+				bar = $(this.v["UIname"]);
 			
-		if( counters[this.v[showReqType]] >= this.v[showReq] ){
+		if( counters[this.v["showReqType"]] >= this.v["showReq"] ){
 			this.bar.show();
 			this.bar.prop('disabled', false);
         
 		} else {
 			this.bar.prop('disabled', true);
 		}
-		bar.prop( 'value, v[buttonTag]+": "+v[cost],);
+		bar.prop( 'value', v["buttonTag"]+": "+v["cost"] );
 	}
 	
-	this.clicked(){
+	this.clicked = function(){
 		if( counters[v[costType]] >= v[cost] )
 		{
 			counters[v[costType]] -= v[cost];
@@ -72,68 +91,7 @@ function Producer( vars )
 	}
 }
 
-function runLoop(){
-    totalWidgets += widgetsPerSecond;
-}
-
-function drawUI(){
-    var outputText =
-        counters[totalWidgets] + " total widgets" + "<br/>" +
-        counters[widgetsPerSecond] + " widgets per second" + "<br/>" +
-        counters[tools] + " tools" + "<br/>";
-    
- /*   if(totalWidgets > factoryCost){
-        factoryBar.show();
-        factoryBar.prop('disabled', false);
-        
-    } else {
-        factoryBar.prop('disabled', true);
-    }
-    
-    factoryBar.prop('value', "Buy Factory - " + factoryCost);
-	*/
-	
-	toolsButton.draw();
-    widgetBar.html(outputText);
-}
-
-/*function buyFactory(){
-    if(totalWidgets > factoryCost){
-        totalWidgets -= factoryCost;
-        factories += 1;
-        factoryCost *= 2;
-        widgetsPerSecond += factoryValue;
-    }
-    
-    factoryBar.text("Buy Factory - " + factoryCost);
-    writeData();
-    drawUI();
-}*/
-
-function readSaveData(){
-    _.each(checkVals,function(name){
-       var temp = window.localStorage.getItem(name);
-       if(temp){
-           window[name] = Number(temp);
-       }
-    });
-    
-    /*if(factories > 0){
-        factoryBar.show();
-        factoryBar.text("Buy Factory - " + factoryCost);
-    }*/
-}
-
-function writeData(){
-    _.each(checkVals,function(name){
-       window.localStorage.setItem(name, window[name]);
-    });
-}
-
-function clickBar(){
-    counters[totalWidgets] += counters[widgetsPerClick];
-    drawUI();
-}
+/*** MAIN LOOP ****************************************/
 
 $(document).ready(function(){
     readSaveData();
@@ -143,3 +101,42 @@ window.setInterval(function(){
     runLoop();
     drawUI();
 }, 1000);
+
+function runLoop(){
+    totalWidgets += widgetsPerSecond;
+	counters["time"]++;
+}
+
+function drawUI(){
+    var outputText =
+		counters["time"] + " seconds" + "<br/>"+
+		"$"+counters["money"] + "<br/>" +
+        counters["widgets"] + " total widgets" + "<br/>" +
+        counters["widgetsPerSecond"] + " widgets per second" + "<br/>" +
+        counters["tools"] + " tools" + "<br/>";
+	widgetBar.html(outputText);
+		
+	// Draw all of the buttons	
+		makeWidgetButton.draw();	
+		sellWidgetButton.draw();
+		toolsButton.draw();
+}
+
+/*** SAVE IO *******************************************/
+
+function readSaveData(){
+    _.each(checkVals,function(name){
+       var temp = window.localStorage.getItem(name);
+       if(temp){
+           window[name] = Number(temp);
+       }
+    });
+}
+
+function writeData(){
+    _.each(checkVals,function(name){
+       window.localStorage.setItem(name, window[name]);
+    });
+}
+
+
