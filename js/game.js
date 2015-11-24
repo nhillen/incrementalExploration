@@ -1,11 +1,7 @@
-var widgetBar = $("#widgetCounter");
-var checkVals = ["totalWidgets", "factories", "factoryCost", "widgetsPerSecond"];
+var infoBlock = $('#widgetCounter');
 
 function drawObject() {
-    if (!this.uiObject) {
-        this.uiObject = $(this.UID);
-    }
-    
+
     if (counters[this.costType] >= this.cost) {
         this.uiObject.show();
         this.uiObject.prop('disabled', false);
@@ -45,6 +41,7 @@ function purchase() {
         counters[controlObject.gainType] += controlObject.gainAmount;
     }  
     
+    writeData();
     drawUI();
 }
 
@@ -70,9 +67,7 @@ var makeWidgetButton = {
     costScaler: 0,
     buttonTag: "Make Widget",
     gainType: "widgets",
-    gainAmount: 1,
-    draw: drawObject,
-    purchase: purchase
+    gainAmount: 1
 };
 
 var sellWidgetButton = {
@@ -84,9 +79,7 @@ var sellWidgetButton = {
     costScaler: 1,
     buttonTag: "Sell Widgets",
     gainType: "money",
-    gainAmount: 5,
-    draw: drawObject,
-    purchase: purchase
+    gainAmount: 5
 };
 
 var toolsButton = {
@@ -98,9 +91,8 @@ var toolsButton = {
     costScaler: 1.25,
     buttonTag: "Tools Cost",
     gainType: "tools",
-    gainAmount: 1,
-    draw: drawObject,
-    purchase: purchase
+    gainAmount: 1
+    
 };
 
 var allButtons = [makeWidgetButton, sellWidgetButton, toolsButton];
@@ -109,9 +101,15 @@ var allButtons = [makeWidgetButton, sellWidgetButton, toolsButton];
 /*** MAIN LOOP ****************************************/
 
 $(document).ready(function () {
+    
+   //window.localStorage.clear();
     readSaveData();
 
+    //Setup functions and parameters
     _.each(allButtons, function (button) {
+        button.draw = drawObject;
+        button.uiObject = $(button.UID);
+        button.purchase = purchase; 
         $(button.UID).click(button.purchase);
     });
 });
@@ -122,8 +120,8 @@ window.setInterval(function () {
 }, 1000);
 
 function runLoop() {
-    totalWidgets += widgetsPerSecond;
-    counters["time"]++;
+    counters.widgets += counters.widgetsPerSecond;
+    counters.time++;
 }
 
 function drawUI() {
@@ -133,7 +131,7 @@ function drawUI() {
             counters["widgets"] + " total widgets" + "<br/>" +
             counters["widgetsPerSecond"] + " widgets per second" + "<br/>" +
             counters["tools"] + " tools" + "<br/>";
-    widgetBar.html(outputText);
+    infoBlock.html(outputText);
 
     // Draw all of the buttons	
     _.each(allButtons, function (button) {
@@ -144,18 +142,20 @@ function drawUI() {
 /*** SAVE IO *******************************************/
 
 function readSaveData() {
-    _.each(checkVals, function (name) {
-        var temp = window.localStorage.getItem(name);
-        if (temp) {
-            window[name] = Number(temp);
-        }
-    });
+    var tempCounter =  window.localStorage.getItem("counters");
+    if(tempCounter){
+        counters = JSON.parse(tempCounter);
+    }
+    
+    var tempButtons = window.localStorage.getItem("allButtons");
+    if(tempButtons){
+        allButtons = JSON.parse(tempButtons);
+    }
 }
 
 function writeData() {
-    _.each(checkVals, function (name) {
-        window.localStorage.setItem(name, window[name]);
-    });
+    window.localStorage.setItem("counters", JSON.stringify(counters));
+    window.localStorage.setItem("allButtons", JSON.stringify(allButtons));
 }
 
 
