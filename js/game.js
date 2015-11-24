@@ -94,7 +94,7 @@ function purchase() {
     drawUI();
 }
 
-function addAllTheThings(){
+function addAllTheThings(callback){
     var oreArea = $("#oreArea");
     var oreThings = _.where(allThings, {gainType: ore});
     
@@ -107,11 +107,14 @@ function addAllTheThings(){
     addToArea(oreArea,oreThings);
     addToArea(widgetArea,widgetThings);
     addToArea(moneyArea,moneyThings);
+    
+    callback();
 }
 
 function addToArea(area, thing){
     _.each(thing, function(button){
-           var buttonHTML = '<button id="'+button.UID+'" class="btn btn-warning" value="'+button.displayName+'">'+button.displayName+'</button>';
+           var newUID = button.UID.replace('#','');
+           var buttonHTML = '<button id="'+newUID+'" class="btn btn-warning" value="'+button.displayName+'">'+button.displayName+'</button>';
            area.append(buttonHTML);
        });
     
@@ -124,17 +127,19 @@ $(document).ready(function () {
    window.localStorage.clear();
     readSaveData();
     
-    addAllTheThings();
+    var setup = function(){
+        //Setup functions and parameters
+        _.each(allThings, function (button) { 
+            button.draw = drawObject;
+            button.uiObject = $(button.UID);
+            button.purchase = purchase; 
+            $(button.UID).click(button.purchase);
+        });
+    }
+    
+    addAllTheThings(setup);
 
-    //Setup functions and parameters
-    _.each(allThings, function (button) { 
-        console.log(button);
-        button.draw = drawObject;
-        button.uiObject = $(button.UID);
-        button.purchase = purchase; 
-        $(button.UID).click(button.purchase);
-        console.log(button.UID);
-    });
+    
 });
 
 window.setInterval(function () {
