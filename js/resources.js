@@ -15,7 +15,9 @@ var widget = {
     count: 0,
     perSecond: 0,
     staticGainMultiplier: 1,
-    perSecondGainMultiplier: 1
+    perSecondGainMultiplier: 1,
+    perSecondResourceType: ore,
+    perSecondResourceRate: 1
 }
 
 var money = {
@@ -23,7 +25,9 @@ var money = {
     count: 0,
     perSecond: 0,
     staticGainMultiplier: 1,
-    perSecondGainMultiplier: 1
+    perSecondGainMultiplier: 1,
+    perSecondResourceCost: widget,
+    perSecondResourceRate: 5
 }
 
 var resources = {

@@ -27,7 +27,7 @@ function findObject(someObject){
 
 function recalculatePerSecond(resource){
     var pps = 0;
-    console.log("Recalculating per second for ", resource);
+    
     _.each(allThings, function(producer){
        if(producer.gainType === resource && producer.productionType === "perSecond"){
            if(!producer.perSecondGainMultiplier){
@@ -37,9 +37,9 @@ function recalculatePerSecond(resource){
            if(!resource.perSecondGainMultiplier){
                producer.perSecondGainMultiplier = 1;
            }
-           console.log(producer);
+           
            pps += Math.round(producer.count * producer.perSecondGainMultiplier * resource.perSecondGainMultiplier);
-           console.log(producer.count, producer.perSecondGainMultiplier , resource.perSecondGainMultiplier);
+           
        }
     });
     resource.perSecond = pps;
@@ -84,7 +84,7 @@ function purchase() {
                 controlObject.count = 0;
             }
             controlObject.count++;
-            console.log("Incremented: ", controlObject);
+            
             recalculatePerSecond(controlObject.gainType);
         }
         
@@ -148,9 +148,26 @@ window.setInterval(function () {
 }, 1000);
 
 function runLoop() {
-    _.each(resources, function(resource){
-       resource.count += resource.perSecond; 
-    });
+    //Todo: Probably can encapsulate these
+    
+    //Make Ore: Currently Free
+    resources.ore.count += (resources.ore.perSecondGainMultiplier * resources.ore.perSecond);
+    
+    //Make Widgets, currently 1/1
+    var widgetsMade = resources.widget.perSecondGainMultiplier * resources.widget.perSecond;
+    if(widgetsMade > resources.ore.count){
+        widgetsMade = resources.ore.count;
+    }
+    resources.ore.count -= widgetsMade;
+    resources.widget.count += (widgetsMade* resources.widget.perSecondResourceRate);
+    
+    //Make money, currently 5/1
+    var moneyMade = resources.money.perSecondGainMultiplier * resources.money.perSecond;
+    if(moneyMade > resources.widget.count){
+        moneyMade = resources.widget.count;
+    }
+    resources.widget.count -= moneyMade;
+    resources.money.count += (moneyMade * resources.money.perSecondResourceRate);
     
     counters.time++;
 }
