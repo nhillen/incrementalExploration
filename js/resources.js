@@ -38,7 +38,7 @@ var makeOre = {
     cost: 0,
     costType: "none",
     costScaler: 0,
-    buttonTag: "Make Ore",
+    displayName: "Make Ore",
     gainType: ore,
     gainAmount: 1,
     productionType: "single"
@@ -49,7 +49,7 @@ var buildWidget = {
     cost: 1,
     costType: ore,
     costScaler: 1,
-    buttonTag: "Make Widget",
+    displayName: "Make Widget",
     gainType: widget,
     gainAmount: 1,
     productionType: "single"
@@ -60,7 +60,7 @@ var sellWidget = {
     cost: 1,
     costType: widget,
     costScaler: 1,
-    buttonTag: "Sell Widgets",
+    displayName: "Sell Widgets",
     gainType: money,
     gainAmount: 5,
     productionType: "single"
@@ -71,7 +71,7 @@ var buildTool = {
     cost: 50,
     costType: money,
     costScaler: 1.25,
-    buttonTag: "Tools Cost",
+    displayName: "Tools Cost",
     gainAmount: 1,
     gainType: widget,
     productionType: "perSecond",

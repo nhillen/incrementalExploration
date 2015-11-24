@@ -94,6 +94,28 @@ function purchase() {
     drawUI();
 }
 
+function addAllTheThings(){
+    var oreArea = $("#oreArea");
+    var oreThings = _.where(allThings, {gainType: ore});
+    
+    var widgetArea = $("#widgetArea");
+    var widgetThings = _.where(allThings, {gainType: widget});
+    
+    var moneyArea = $("#moneyArea");
+    var moneyThings = _.where(allThings, {gainType: money});
+    
+    addToArea(oreArea,oreThings);
+    addToArea(widgetArea,widgetThings);
+    addToArea(moneyArea,moneyThings);
+}
+
+function addToArea(area, thing){
+    _.each(thing, function(button){
+           var buttonHTML = '<button id="'+button.UID+'" class="btn btn-warning" value="'+button.displayName+'">'+button.displayName+'</button>';
+           area.append(buttonHTML);
+       });
+    
+}
 
 /*** MAIN LOOP ****************************************/
 
@@ -101,6 +123,8 @@ $(document).ready(function () {
     
    window.localStorage.clear();
     readSaveData();
+    
+    addAllTheThings();
 
     //Setup functions and parameters
     _.each(allThings, function (button) { 
