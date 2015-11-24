@@ -45,7 +45,7 @@ function recalculatePerSecond(resource){
     resource.perSecond = pps;
 }
 
-
+//TODO: Fix non-static purchase
 function purchase() {
     var controlObject = findObject(this);
     var costType = controlObject.costType;
@@ -94,91 +94,6 @@ function purchase() {
     drawUI();
 }
 
-var ore = {
-    name: "Ore",
-    count: 0,
-    perSecond: 0,
-    staticGainMultiplier: 1,
-    perSecondGainMultiplier: 1
-}
-
-var widget = {
-    name: "Widgets",
-    count: 0,
-    perSecond: 0,
-    staticGainMultiplier: 1,
-    perSecondGainMultiplier: 1
-}
-
-var money = {
-    name: "Money",
-    count: 0,
-    perSecond: 0,
-    staticGainMultiplier: 1,
-    perSecondGainMultiplier: 1
-}
-
-var resources = {
-    ore: ore,
-    widget : widget,
-    money: money
-}
-
-
-
-var counters = {
-    none: 0,
-    time: 0,
-    tools: 0,
-}
-
-
-var makeOre = {
-    UID: "#btnMineOre",
-    cost: 0,
-    costType: "none",
-    costScaler: 0,
-    buttonTag: "Make Ore",
-    gainType: ore,
-    gainAmount: 1,
-    productionType: "single"
-}
-
-var buildWidget = {
-    UID: "#btnMakeWidget",
-    cost: 1,
-    costType: ore,
-    costScaler: 1,
-    buttonTag: "Make Widget",
-    gainType: widget,
-    gainAmount: 1,
-    productionType: "single"
-};
-
-var sellWidget = {
-    UID: "#btnSellWidget",
-    cost: 1,
-    costType: widget,
-    costScaler: 1,
-    buttonTag: "Sell Widgets",
-    gainType: money,
-    gainAmount: 5,
-    productionType: "single"
-};
-
-var buildTool = {
-    UID: "#btnBuyTool",
-    cost: 50,
-    costType: money,
-    costScaler: 1.25,
-    buttonTag: "Tools Cost",
-    gainAmount: 1,
-    gainType: widget,
-    productionType: "perSecond",
-    gainMultiplier: 1
-};
-
-var allThings = [makeOre, buildWidget, sellWidget, buildTool];
 
 /*** MAIN LOOP ****************************************/
 
@@ -211,6 +126,7 @@ function runLoop() {
     counters.time++;
 }
 
+//Add method to add UI
 function drawUI() {
     var outputText = counters.time + " seconds" + "<br/>";
     
