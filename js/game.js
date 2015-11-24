@@ -38,6 +38,10 @@ function recalculatePerSecond(resource){
                producer.perSecondGainMultiplier = 1;
            }
            
+           if(!producer.count){
+               producer.count = 0;
+           }
+           
            pps += Math.round(producer.count * producer.perSecondGainMultiplier * resource.perSecondGainMultiplier);
            
        }
