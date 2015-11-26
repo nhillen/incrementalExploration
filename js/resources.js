@@ -42,59 +42,46 @@ var makeOre = {
     cost: 0,
     costType: "none",
     costScaler: 0,
-    displayName: "Make Ore",
+    displayName: "Mine Ore",
     gainType: ore,
     gainAmount: 1,
     productionType: "single"
 }
+
+var buildMine = {
+    UID: "#btnBuyMine",
+    cost: 300,
+    costType: money,
+    costScaler: 1.4,
+    displayName: "Buy Mine",
+    gainAmount: 5,
+    gainType: ore,
+    productionType: "perSecond",
+    gainMultiplier: 1
+};
+
+var buildSmelter = {
+    UID: "#btnBuySmelter",
+    cost: 12000,
+    costType: money,
+    costScaler: 1.4,
+    displayName: "Buy Smelter",
+    gainAmount: 50,
+    gainType: ore,
+    productionType: "perSecond",
+    gainMultiplier: 1
+};
 
 var buildWidget = {
     UID: "#btnMakeWidget",
     cost: 1,
     costType: ore,
     costScaler: 1,
-    displayName: "Make Widget",
+    displayName: "Create Widget",
     gainType: widget,
     gainAmount: 1,
     productionType: "single"
 };
-
-var sellWidget = {
-    UID: "#btnSellWidget",
-    cost: 1,
-    costType: widget,
-    costScaler: 1,
-    displayName: "Sell Widgets",
-    gainType: money,
-    gainAmount: 5,
-    productionType: "single"
-};
-
-var buildStall = {
-    UID: "#btnBuyStall",
-    cost: 20,
-    costType: widget,
-    costScaler: 1.25,
-    displayName: "Stall Cost",
-    gainAmount: 5,
-    gainType: money,
-    productionType: "perSecond",
-    gainMultiplier: 1
-};
-
-var buildStore = {
-    UID: "#btnBuyStre",
-    cost: 150,
-    costType: widget,
-    costScaler: 1.25,
-    displayName: "Stall Cost",
-    gainAmount: 45,
-    gainType: money,
-    productionType: "perSecond",
-    gainMultiplier: 1
-};
-
-
 
 var buildTool = {
     UID: "#btnBuyTool",
@@ -108,19 +95,80 @@ var buildTool = {
     gainMultiplier: 1
 };
 
-var buildFactory = {
-    UID: "#btnBuyFactory",
+var buildShop = {
+    UID: "#btnBuyShop",
     cost: 100,
     costType: widget,
     costScaler: 1.25,
-    displayName: "Factory Cost",
+    displayName: "Shop Cost",
     gainAmount: 8,
     gainType: widget,
     productionType: "perSecond",
     gainMultiplier: 1
 };
 
-var allThings = [makeOre, buildWidget, sellWidget, buildStall, buildStore, buildTool, buildFactory];
+var buildFactory = {
+    UID: "#btnBuyFactory",
+    cost: 1500,
+    costType: widget,
+    costScaler: 1.25,
+    displayName: "Factory Cost",
+    gainAmount: 100,
+    gainType: widget,
+    productionType: "perSecond",
+    gainMultiplier: 1
+};
+
+var sellWidget = {
+    UID: "#btnSellWidget",
+    cost: 1,
+    costType: widget,
+    costScaler: 1,
+    displayName: "Sell Widget",
+    gainType: money,
+    gainAmount: 5,
+    productionType: "single"
+};
+
+var buildStall = {
+    UID: "#btnBuyStall",
+    cost: 20,
+    costType: widget,
+    costScaler: 1.25,
+    displayName: "Buy Stall",
+    gainAmount: 5,
+    gainType: money,
+    productionType: "perSecond",
+    gainMultiplier: 1
+};
+
+var buildStore = {
+    UID: "#btnBuyStore",
+    cost: 150,
+    costType: widget,
+    costScaler: 1.25,
+    displayName: "Buy Store",
+    gainAmount: 45,
+    gainType: money,
+    productionType: "perSecond",
+    gainMultiplier: 1
+};
+
+var buildDistributor = {
+    UID: "#btnBuyDistributor",
+    cost: 7000,
+    costType: widget,
+    costScaler: 1.25,
+    displayName: "Buy Distributor ",
+    gainAmount: 600,
+    gainType: money,
+    productionType: "perSecond",
+    gainMultiplier: 1
+};
+
+
+
+var allThings = [makeOre, buildMine, buildSmelter, buildWidget, sellWidget, buildStall, buildStore, buildDistributor, buildTool, buildShop, buildFactory];
 
 
 /**
