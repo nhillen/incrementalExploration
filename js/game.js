@@ -142,13 +142,18 @@ function addToArea(area, thing){
 }
 
 function setCurrentActivity(activityName){
-
   if (typeof window[activityName] === "function") {
     // celebrate
     //window[strOfFunction](); //To call the function dynamically!
     currentActivity = window[activityName];
   } else {
     currentActivity = false;
+    currentActivityWorkTarget = 0;
+    currentActivityWork = 0;
+
+    progress.setAttribute('data-done', 0 )
+    progress.innerHTML = "0%"
+
   }
 }
 
@@ -162,7 +167,7 @@ function rest(){
     if (currentActivityWork >= currentActivityWorkTarget) {
       let proposedEnergy = character.energy + character.energyPerRest
       if(proposedEnergy < character.maxEnergy ){
-        characterEnergy = proposedEnergy
+        character.energy = proposedEnergy
         setActivityMessage("Gained " + character.energyPerRest + " Energy from Resting")
      }
 
@@ -248,13 +253,19 @@ function runLoop() {
 function drawUI() {
     var outputText = counters.time + " seconds" + "<br/>";
 
+    /*
     _.each(resources, function(resource){
         outputText += "<div class=resource><h3>" + resource.name + "</h3>";
         outputText += resource.count + " total<br/>";
         outputText += resource.perSecond + " gained Per Second <br/>";
         //outputText += resource.salePrice + " is current sale price <br/>";
         outputText += "</div><br/>";
+    });*/
+    outputText += "<h3>Stats</h3>";
+    _.each(statsToDisplay, function(statName){
+       outputText += statDisplayName[statName] + ": " + character[statName]+"<br/>"
     });
+
 
     infoBlock.html(outputText);
 

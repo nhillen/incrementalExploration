@@ -13,7 +13,7 @@ const locations = {
       {
         id: "Stop",
         displayName: "Stop All Activities",
-        clickfunction: function(){setCurrentActivity('')}
+        clickFunction: function(){setCurrentActivity('')}
       }
     ]
   }
