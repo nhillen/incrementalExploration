@@ -6,6 +6,7 @@ var currentActivityWork = 0;
 var currentActivityWorkTarget = 0;
 let character;
 var activityTextTimestamp = 0;
+var activityMessage = false;
 
 const progress = document.querySelector('.progress-done');
 
@@ -124,7 +125,7 @@ function addAllTheThings(callback){
 
 function addActivityButtons(area, activityArray) {
     _.each(activityArray, function(activity) {
-          var buttonHTML = '<button" class="btn btn-warning" id="'+activity.id +'">'+activity.displayName+'</button>';
+          var buttonHTML = '<button" class="btn btn-warning activityButton" id="'+activity.id +'">'+activity.displayName+'</button>';
           area.append(buttonHTML);
 
           $("#"+ activity.id).click(activity.clickFunction);
@@ -134,7 +135,7 @@ function addActivityButtons(area, activityArray) {
 function addToArea(area, thing){
     _.each(thing, function(button){
            var newUID = button.UID.replace('#','');
-           var buttonHTML = '<button id="'+newUID+'" class="btn btn-warning" value="'+button.displayName+'">'+button.displayName+'</button>';
+           var buttonHTML = '<button id="'+newUID+'" class="btn btn-warning activityButton" value="'+button.displayName+'">'+button.displayName+'</button>';
            area.append(buttonHTML);
        });
 
@@ -158,13 +159,11 @@ function rest(){
       currentActivityWorkTarget = character.timeToRest
     }
 
-    currentActivityWork += character.restSpeedMultiplier * 1
-
     if (currentActivityWork >= currentActivityWorkTarget) {
       let proposedEnergy = character.energy + character.energyPerRest
       if(proposedEnergy < character.maxEnergy ){
         characterEnergy = proposedEnergy
-        activityMessage("Gained " + character.energyPerRest)
+        setActivityMessage("Gained " + character.energyPerRest + " Energy from Resting")
      }
 
      currentActivityWork = 0;
@@ -177,11 +176,13 @@ function rest(){
    progress.innerHTML = uiUpdateValue + "%"
 
 
+
+   currentActivityWork += character.restSpeedMultiplier * 1
 }
 
-function activityMessage(message){
+function setActivityMessage(message){
     activityTextTimestamp = Date.now();
-    $("#activityText").innerHTML = message;
+    activityMessage = message;
 }
 
 /*** MAIN LOOP ****************************************/
@@ -196,6 +197,7 @@ $(document).ready(function () {
     }
 
     var setup = function(){
+         $("#activityText").hide();
         //Setup functions and parameters
         _.each(allThings, function (button) {
             button.draw = drawObject;
@@ -263,6 +265,19 @@ function drawUI() {
 
     progress.style.width = progress.getAttribute('data-done') + '%';
     progress.style.opacity = 1;
+    if(activityMessage && Date.now() - activityTextTimestamp <= 2000){
+       if( $("#activityText").text() != activityMessage ){
+         $("#activityText").text(activityMessage);
+         $("#activityText").fadeIn("slower");
+       }
+    } else if (activityMessage) {
+
+      activityMessage = false;
+      $("#activityText").fadeOut("fast", function(){
+          $(this).text("");
+      });
+    }
+
 }
 
 /*** SAVE IO *******************************************/
