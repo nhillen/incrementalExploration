@@ -2,6 +2,23 @@ var counters = {
     time: 0
 }
 
+const locations = {
+  home : {
+    activities : [
+      {
+        id: "sleep",
+        displayName: "Sleep on the Bed",
+        clickFunction: function(){setCurrentActivity('rest')}
+      },
+      {
+        id: "Stop",
+        displayName: "Stop All Activities",
+        clickfunction: function(){setCurrentActivity('')}
+      }
+    ]
+  }
+}
+
 var ore = {
     name: "Ore",
     count: 0,
@@ -174,5 +191,5 @@ var allThings = [makeOre, buildMine, buildSmelter, buildWidget, sellWidget, buil
 /**
  * The other file gets counters, allThings and resources, if your stuff isnt in those
  * files it doesnt make it into the game
- * 
+ *
  */

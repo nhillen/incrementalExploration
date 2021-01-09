@@ -1,14 +1,23 @@
 var infoBlock = $('#widgetCounter');
 
+var currentActivity = '';
+var currentLocation = 'home';
+var currentActivityWork = 0;
+var currentActivityWorkTarget = 0;
+let character;
+var activityTextTimestamp = 0;
+
+const progress = document.querySelector('.progress-done');
+
 function drawObject() {
- 
+
     if (this.costType === "none" || this.costType.count >= this.cost) {
         this.uiObject.show();
         this.uiObject.prop('disabled', false);
     } else {
         this.uiObject.prop('disabled', true);
     }
-    
+
     this.uiObject.prop('value', this.buttonTag + ": " + this.cost);
 }
 
@@ -21,29 +30,29 @@ function findObject(someObject){
             returnObject = name;
         }
     });
-    
+
     return returnObject;
 }
 
 function recalculatePerSecond(resource){
     var pps = 0;
-    
+
     _.each(allThings, function(producer){
        if(producer.gainType === resource && producer.productionType === "perSecond"){
            if(!producer.perSecondGainMultiplier){
                producer.perSecondGainMultiplier = 1;
            }
-           
+
            if(!resource.perSecondGainMultiplier){
                producer.perSecondGainMultiplier = 1;
            }
-           
+
            if(!producer.count){
                producer.count = 0;
            }
-           
+
            pps += Math.round(producer.count * producer.perSecondGainMultiplier * resource.perSecondGainMultiplier);
-           
+
        }
     });
     resource.perSecond = pps;
@@ -53,24 +62,24 @@ function recalculatePerSecond(resource){
 function purchase() {
     var controlObject = findObject(this);
     var costType = controlObject.costType;
-    
+
     //If we have enough resources to buy the thing
     if (!_.contains(resources, costType)){
-        
+
         if(controlObject.productionType === "single"){
             if(!controlObject.staticGainMultiplier){
                 controlObject.staticGainMultiplier = 1;
             }
-            
+
            //Set the new amount including any resource or producer modifiers
             controlObject.gainType.count += Math.round(controlObject.gainAmount * controlObject.gainType.staticGainMultiplier * controlObject.staticGainMultiplier);
-            
+
         } else{
             console.log("You probably should never be making these");
         }
-        
+
     } else if(costType.count >= controlObject.cost){
-        
+
         //Remove the amount
         costType.count -= controlObject.cost;
 
@@ -88,31 +97,38 @@ function purchase() {
                 controlObject.count = 0;
             }
             controlObject.count++;
-            
+
             recalculatePerSecond(controlObject.gainType);
         }
-        
-    }  
-    
+
+    }
+
     writeData();
     drawUI();
 }
 
 function addAllTheThings(callback){
-    var oreArea = $("#oreArea");
-    var oreThings = _.where(allThings, {gainType: ore});
-    
-    var widgetArea = $("#widgetArea");
-    var widgetThings = _.where(allThings, {gainType: widget});
-    
-    var moneyArea = $("#moneyArea");
-    var moneyThings = _.where(allThings, {gainType: money});
-    
-    addToArea(oreArea,oreThings);
-    addToArea(widgetArea,widgetThings);
-    addToArea(moneyArea,moneyThings);
-    
+   var activityArea = $("#ActivityContainer");
+   var activities = locations[currentLocation].activities;
+   addActivityButtons(activityArea, activities);
+
+
+    //var oreArea = $("#oreArea");
+    //var oreThings = _.where(allThings, {gainType: ore});
+
+    //addToArea(oreArea,oreThings);
+
     callback();
+}
+
+
+function addActivityButtons(area, activityArray) {
+    _.each(activityArray, function(activity) {
+          var buttonHTML = '<button" class="btn btn-warning" id="'+activity.id +'">'+activity.displayName+'</button>';
+          area.append(buttonHTML);
+
+          $("#"+ activity.id).click(activity.clickFunction);
+    });
 }
 
 function addToArea(area, thing){
@@ -121,29 +137,77 @@ function addToArea(area, thing){
            var buttonHTML = '<button id="'+newUID+'" class="btn btn-warning" value="'+button.displayName+'">'+button.displayName+'</button>';
            area.append(buttonHTML);
        });
-    
+
+}
+
+function setCurrentActivity(activityName){
+
+  if (typeof window[activityName] === "function") {
+    // celebrate
+    //window[strOfFunction](); //To call the function dynamically!
+    currentActivity = window[activityName];
+  } else {
+    currentActivity = false;
+  }
+}
+
+function rest(){
+    let uiUpdateValue = 0;
+    if (currentActivityWorkTarget == 0) {
+      //Initialize activity
+      currentActivityWorkTarget = character.timeToRest
+    }
+
+    currentActivityWork += character.restSpeedMultiplier * 1
+
+    if (currentActivityWork >= currentActivityWorkTarget) {
+      let proposedEnergy = character.energy + character.energyPerRest
+      if(proposedEnergy < character.maxEnergy ){
+        characterEnergy = proposedEnergy
+        activityMessage("Gained " + character.energyPerRest)
+     }
+
+     currentActivityWork = 0;
+     uiUpdateValue = 100;
+   } else {
+     uiUpdateValue = (currentActivityWork / currentActivityWorkTarget) * 100
+   }
+
+   progress.setAttribute('data-done', uiUpdateValue )
+   progress.innerHTML = uiUpdateValue + "%"
+
+
+}
+
+function activityMessage(message){
+    activityTextTimestamp = Date.now();
+    $("#activityText").innerHTML = message;
 }
 
 /*** MAIN LOOP ****************************************/
 
 $(document).ready(function () {
-    
+
    window.localStorage.clear();
     readSaveData();
-    
+
+    if (!character) {
+      character = defaultCharacter
+    }
+
     var setup = function(){
         //Setup functions and parameters
-        _.each(allThings, function (button) { 
+        _.each(allThings, function (button) {
             button.draw = drawObject;
             button.uiObject = $(button.UID);
-            button.purchase = purchase; 
+            button.purchase = purchase;
             $(button.UID).click(button.purchase);
         });
     }
-    
+
     addAllTheThings(setup);
 
-    
+
 });
 
 window.setInterval(function () {
@@ -153,10 +217,12 @@ window.setInterval(function () {
 
 function runLoop() {
     //Todo: Probably can encapsulate these
-    
+    if(typeof currentActivity === "function"){
+      currentActivity();
+    }
     //Make Ore: Currently Free
     resources.ore.count += (resources.ore.perSecondGainMultiplier * resources.ore.perSecond);
-    
+
     //Make Widgets, currently 1/1
     var widgetsMade = resources.widget.perSecondGainMultiplier * resources.widget.perSecond;
     if(widgetsMade > resources.ore.count){
@@ -164,7 +230,7 @@ function runLoop() {
     }
     resources.ore.count -= widgetsMade;
     resources.widget.count += (widgetsMade* resources.widget.perSecondResourceRate);
-    
+
     //Make money, currently 5/1
     var moneyMade = resources.money.perSecondGainMultiplier * resources.money.perSecond;
     if(moneyMade > resources.widget.count){
@@ -172,14 +238,14 @@ function runLoop() {
     }
     resources.widget.count -= moneyMade;
     resources.money.count += (moneyMade * resources.money.perSecondResourceRate);
-    
+
     counters.time++;
 }
 
 //Add method to add UI
 function drawUI() {
     var outputText = counters.time + " seconds" + "<br/>";
-    
+
     _.each(resources, function(resource){
         outputText += "<div class=resource><h3>" + resource.name + "</h3>";
         outputText += resource.count + " total<br/>";
@@ -187,13 +253,16 @@ function drawUI() {
         //outputText += resource.salePrice + " is current sale price <br/>";
         outputText += "</div><br/>";
     });
-    
+
     infoBlock.html(outputText);
 
-    // Draw all of the buttons	
+    // Draw all of the buttons
     _.each(allThings, function (button) {
         button.draw();
     });
+
+    progress.style.width = progress.getAttribute('data-done') + '%';
+    progress.style.opacity = 1;
 }
 
 /*** SAVE IO *******************************************/
@@ -203,16 +272,20 @@ function readSaveData() {
     if(tempCounter){
         counters = JSON.parse(tempCounter);
     }
-    
+
     var tempButtons = window.localStorage.getItem("allButtons");
     if(tempButtons){
         allThings = JSON.parse(tempButtons);
+    }
+
+    var tempCharacter = window.localStorage.getItem("character");
+    if(tempCharacter){
+        character = JSON.parse(tempCharacter);
     }
 }
 
 function writeData() {
     window.localStorage.setItem("counters", JSON.stringify(counters));
     window.localStorage.setItem("allButtons", JSON.stringify(allThings));
+    window.localStorage.setItem("character", JSON.stringify(character));
 }
-
-
