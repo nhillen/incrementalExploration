@@ -1,12 +1,37 @@
 let defaultCharacter =
 {
-  energy : 25,
-  maxEnergy : 50,
+  energy: {
+    current: 0,
+    max: 50,
+  },
   energyPerRest: 1,
   timeToRest: 5,
   restSpeedMultiplier : 1,
+  restSpeedTargetMultiplier: 1,
+  restUnits: 1,
+  currentLocation: "home"
 }
 
+let modifiedCharacter = 
+{
+
+}
+
+let modifiers = 
+{
+  equipment : {
+
+  },
+  buffs : {
+
+  },
+  effects : {
+
+  },
+  location : {
+
+  }
+}
 
 const statDisplayName = {
   energy : "Energy",

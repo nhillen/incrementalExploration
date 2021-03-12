@@ -35,154 +35,81 @@ function findObject(someObject){
     return returnObject;
 }
 
-function recalculatePerSecond(resource){
-    var pps = 0;
+function stop(){
+  console.log("Stopping")
+  currentActivity = false;
+  currentActivityWorkTarget = 0;
+  currentActivityWork = 0;
 
-    _.each(allThings, function(producer){
-       if(producer.gainType === resource && producer.productionType === "perSecond"){
-           if(!producer.perSecondGainMultiplier){
-               producer.perSecondGainMultiplier = 1;
-           }
-
-           if(!resource.perSecondGainMultiplier){
-               producer.perSecondGainMultiplier = 1;
-           }
-
-           if(!producer.count){
-               producer.count = 0;
-           }
-
-           pps += Math.round(producer.count * producer.perSecondGainMultiplier * resource.perSecondGainMultiplier);
-
-       }
-    });
-    resource.perSecond = pps;
+  progress.setAttribute('data-done', 0 )
+  progress.innerHTML = "0%"
 }
 
-//TODO: Fix non-static purchase
-function purchase() {
-    var controlObject = findObject(this);
-    var costType = controlObject.costType;
+function setActivity(name){
+  currentActivity = name;
+  console.log("Activity set to " + name)
+}
 
-    //If we have enough resources to buy the thing
-    if (!_.contains(resources, costType)){
-
-        if(controlObject.productionType === "single"){
-            if(!controlObject.staticGainMultiplier){
-                controlObject.staticGainMultiplier = 1;
-            }
-
-           //Set the new amount including any resource or producer modifiers
-            controlObject.gainType.count += Math.round(controlObject.gainAmount * controlObject.gainType.staticGainMultiplier * controlObject.staticGainMultiplier);
-
-        } else{
-            console.log("You probably should never be making these");
-        }
-
-    } else if(costType.count >= controlObject.cost){
-
-        //Remove the amount
-        costType.count -= controlObject.cost;
-
-        //Set the new price
-        controlObject.cost = Math.round(controlObject.cost * controlObject.costScaler);
-
-        if(controlObject.productionType === "single"){
-            if(!controlObject.staticGainMultiplier){
-                controlObject.staticGainMultiplier = 1;
-            }
-           //Set the new amount including any resource or producer modifiers
-            controlObject.gainType.count += (controlObject.gainAmount * controlObject.gainType.staticGainMultiplier * controlObject.staticGainMultiplier);
-        } else {
-            if(!controlObject.count){
-                controlObject.count = 0;
-            }
-            controlObject.count++;
-
-            recalculatePerSecond(controlObject.gainType);
-        }
-
+//Figure out what to do with an activity
+//This is currently broken in that it will set an activity but only execute them once
+function runActivity(name){
+  if(customActivities.includes(name)){
+    //Do custom shit
+    if (typeof window[name] === "function") {
+      //Dynamically call the custom function
+      window[name](); //To call the function dynamically!
+      console.log("Running " + name)
+    } else {
+      //panic
     }
-
-    writeData();
-    drawUI();
-}
-
-function addAllTheThings(callback){
-   var activityArea = $("#ActivityContainer");
-   var activities = locations[currentLocation].activities;
-   addActivityButtons(activityArea, activities);
-
-
-    //var oreArea = $("#oreArea");
-    //var oreThings = _.where(allThings, {gainType: ore});
-
-    //addToArea(oreArea,oreThings);
-
-    callback();
-}
-
-
-function addActivityButtons(area, activityArray) {
-    _.each(activityArray, function(activity) {
-          var buttonHTML = '<button" class="btn btn-warning activityButton" id="'+activity.id +'">'+activity.displayName+'</button>';
-          area.append(buttonHTML);
-
-          $("#"+ activity.id).click(activity.clickFunction);
-    });
-}
-
-function addToArea(area, thing){
-    _.each(thing, function(button){
-           var newUID = button.UID.replace('#','');
-           var buttonHTML = '<button id="'+newUID+'" class="btn btn-warning activityButton" value="'+button.displayName+'">'+button.displayName+'</button>';
-           area.append(buttonHTML);
-       });
-
-}
-
-function setCurrentActivity(activityName){
-  if (typeof window[activityName] === "function") {
-    // celebrate
-    //window[strOfFunction](); //To call the function dynamically!
-    currentActivity = window[activityName];
+    return 
   } else {
-    currentActivity = false;
-    currentActivityWorkTarget = 0;
-    currentActivityWork = 0;
-
-    progress.setAttribute('data-done', 0 )
-    progress.innerHTML = "0%"
-
+    //TODO: Set the current activity
+    runGenericActivity(name);
   }
 }
 
-function rest(){
-    let uiUpdateValue = 0;
-    if (currentActivityWorkTarget == 0) {
-      //Initialize activity
-      currentActivityWorkTarget = character.timeToRest
-    }
+function runGenericActivity(name){
+  let thisActivity = activities[name];
 
-    if (currentActivityWork >= currentActivityWorkTarget) {
-      let proposedEnergy = character.energy + character.energyPerRest
-      if(proposedEnergy < character.maxEnergy ){
-        character.energy = proposedEnergy
-        setActivityMessage("Gained " + character.energyPerRest + " Energy from Resting")
-     }
+  let uiUpdateValue = 0;
+  if (currentActivityWorkTarget == 0 || !currentActivityWorkTarget) {
+    //Initialize activity
+    currentActivityWorkTarget = character[thisActivity.timeTarget]
+    //Apply any modifiers
+    currentActivityWorkTarget = currentActivityWorkTarget * character[thisActivity.timeTargetMultiplier]
+    
+    console.log(currentActivityWorkTarget)
+  } 
 
-     currentActivityWork = 0;
-     uiUpdateValue = 100;
+  if (currentActivityWork >= currentActivityWorkTarget) {
+    gainResource(thisActivity.resourceGenerated, thisActivity.rate )
+
+    currentActivityWork = 0;
+    uiUpdateValue = 100;
+
    } else {
      uiUpdateValue = (currentActivityWork / currentActivityWorkTarget) * 100
    }
+  progress.setAttribute('data-done', uiUpdateValue )
+  progress.innerHTML = uiUpdateValue + "%"
 
-   progress.setAttribute('data-done', uiUpdateValue )
-   progress.innerHTML = uiUpdateValue + "%"
+  currentActivityWork += character[thisActivity.workMultiplier] * 1
+}
 
-
-
-   currentActivityWork += character.restSpeedMultiplier * 1
+function gainResource(resource, amount){
+  let proposedResource = character[resource] + character[amount]
+  if(character[resource].max){
+    if(proposedResource < character[resource].max) {
+      character[resource] = proposedResource
+      //TODO: Figure out messaging
+      //setActivityMessage("Gained " + character.energyPerRest + " Energy from Resting")
+    } else {
+      character[resource] = character[resource].max
+    }
+  } else {
+    character[resource] = proposedResource
+  }
 }
 
 function setActivityMessage(message){
@@ -199,20 +126,23 @@ $(document).ready(function () {
 
     if (!character) {
       character = defaultCharacter
+      setLocation('home')
+    } else {
+      console.log(character.currentLocation)
+      setLocation(character.currentLocation)
     }
 
     var setup = function(){
          $("#activityText").hide();
         //Setup functions and parameters
+        /*
         _.each(allThings, function (button) {
             button.draw = drawObject;
             button.uiObject = $(button.UID);
             button.purchase = purchase;
             $(button.UID).click(button.purchase);
-        });
+        });*/
     }
-
-    addAllTheThings(setup);
 
 
 });
@@ -223,44 +153,58 @@ window.setInterval(function () {
 }, 1000);
 
 function runLoop() {
-    //Todo: Probably can encapsulate these
-    if(typeof currentActivity === "function"){
-      currentActivity();
-    }
-    //Make Ore: Currently Free
-    resources.ore.count += (resources.ore.perSecondGainMultiplier * resources.ore.perSecond);
+  if(currentActivity){
+    runActivity(currentActivity)
+  } 
 
-    //Make Widgets, currently 1/1
-    var widgetsMade = resources.widget.perSecondGainMultiplier * resources.widget.perSecond;
-    if(widgetsMade > resources.ore.count){
-        widgetsMade = resources.ore.count;
-    }
-    resources.ore.count -= widgetsMade;
-    resources.widget.count += (widgetsMade* resources.widget.perSecondResourceRate);
+  counters.time++;
+}
 
-    //Make money, currently 5/1
-    var moneyMade = resources.money.perSecondGainMultiplier * resources.money.perSecond;
-    if(moneyMade > resources.widget.count){
-        moneyMade = resources.widget.count;
-    }
-    resources.widget.count -= moneyMade;
-    resources.money.count += (moneyMade * resources.money.perSecondResourceRate);
 
-    counters.time++;
+/* This takes a string index which sets the UI elements for the UI*/
+function setLocation(key){
+   if(!locations[key]){
+    console.log("Location doesnt exist");
+    return
+   } else {
+     character.currentLocation = locations[key]
+     $("#locationName").text(locations[key].locationName)
+     $("#locationDescription").text(locations[key].locationDescription)
+   }
+
+   setupActivities(locations[key].activities)
+}
+
+/* Set up activity buttons for each activity in our current location*/
+function setupActivities(jsonObjectArray){
+  if(!jsonObjectArray){
+    //No Activities
+    return
+  }
+
+   var activityArea = $("#ActivityContainer");
+
+  _.each(jsonObjectArray, function(activity) {
+    console.log(activityArea)
+      addActivityButton(activityArea, activity)
+  });
+}
+
+/* Refactored this to its own method in case we ever want to add one-off non-location buttons */
+//TODO: Implement Remove activity button
+function addActivityButton(area, activity){
+  var buttonHTML = '<button" class="btn btn-warning activityButton" id="'+activity.id +'">'+activity.displayName+'</button>';
+  area.append(buttonHTML);
+  $("#"+ activity.id).click(function(){
+    var clickedBtnID = $(this).attr('id');
+    setActivity(clickedBtnID)
+  });
 }
 
 //Add method to add UI
 function drawUI() {
     var outputText = counters.time + " seconds" + "<br/>";
 
-    /*
-    _.each(resources, function(resource){
-        outputText += "<div class=resource><h3>" + resource.name + "</h3>";
-        outputText += resource.count + " total<br/>";
-        outputText += resource.perSecond + " gained Per Second <br/>";
-        //outputText += resource.salePrice + " is current sale price <br/>";
-        outputText += "</div><br/>";
-    });*/
     outputText += "<h3>Stats</h3>";
     _.each(statsToDisplay, function(statName){
        outputText += statDisplayName[statName] + ": " + character[statName]+"<br/>"
@@ -270,9 +214,10 @@ function drawUI() {
     infoBlock.html(outputText);
 
     // Draw all of the buttons
+    /*
     _.each(allThings, function (button) {
         button.draw();
-    });
+    });*/
 
     progress.style.width = progress.getAttribute('data-done') + '%';
     progress.style.opacity = 1;
