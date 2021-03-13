@@ -1,6 +1,7 @@
 var infoBlock = $('#widgetCounter');
 
 var currentActivity = '';
+var currentActivityCustomModifiers = {}
 var currentLocation = 'home';
 var currentActivityWork = 0;
 var currentActivityWorkTarget = 0;
@@ -38,6 +39,7 @@ function findObject(someObject){
 function stop(){
   console.log("Stopping")
   currentActivity = false;
+  currentActivityCustomModifiers = false;
   currentActivityWorkTarget = 0;
   currentActivityWork = 0;
 
@@ -47,7 +49,22 @@ function stop(){
 
 function setActivity(name){
   currentActivity = name;
+  setCurrentActivityCustomModifiers(name);
   console.log("Activity set to " + name)
+}
+
+
+//TODO: Rewrite this to not iterate through all activities in a location each time we set a new activity
+function setCurrentActivityCustomModifiers(activityName){
+  if(locations[currentLocation].activities){
+    _.each(locations[currentLocation].activities, function(activity) {
+      if(activity.id == activityName){
+        if(activity.variableValues){
+          currentActivityCustomModifiers = activity.variableValues
+        }
+      }
+    })
+  }  
 }
 
 //Figure out what to do with an activity
@@ -117,6 +134,26 @@ function setActivityMessage(message){
     activityMessage = message;
 }
 
+/*** Custom Activities ********************************/
+//TODO:  Move all travel stuff into its own JS
+function travel(){
+  console.log(currentActivityCustomModifiers);
+  let travelType = character.travelType;
+  const TravelSpeed = getSpeedByTravelType(travelType);
+}
+
+function getSpeedByTravelType(type){
+  switch(type){
+    case "walking":
+      return character.walkingSpeed;
+    default: 
+      return 0;
+  }
+
+
+}
+
+
 /*** MAIN LOOP ****************************************/
 
 $(document).ready(function () {
@@ -185,7 +222,6 @@ function setupActivities(jsonObjectArray){
    var activityArea = $("#ActivityContainer");
 
   _.each(jsonObjectArray, function(activity) {
-    console.log(activityArea)
       addActivityButton(activityArea, activity)
   });
 }

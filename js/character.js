@@ -9,12 +9,28 @@ let defaultCharacter =
   restSpeedMultiplier : 1,
   restSpeedTargetMultiplier: 1,
   restUnits: 1,
-  currentLocation: "home"
+  walkingSpeed: 1,
+  currentLocation: "home",
+  travelType: "Walking",
+  skills: {
+      walking: {
+        level: 0,
+        xp: 0,
+        affectedStat: 'walkingSpeed',
+        ratio: 1/10
+      },
+      stamina: {
+        level: 0,
+        xp: 0,
+        affectedStat: 'energy',
+        ratio: 1/10
+      }
+  }
 }
 
 let modifiedCharacter = 
 {
-
+  walkSpeed = 0
 }
 
 let modifiers = 
@@ -38,7 +54,7 @@ const statDisplayName = {
   maxEnergy : "Max Energy",
   energyPerRest : "Energy Restored Per Rest",
   timeToRest : "Rest Interval",
-  restSpeedMultiplier: "Resting Speed Multiplier"
+  restSpeedMultiplier: "Resting Speed Multiplier",
 }
 
 let statsToDisplay = [

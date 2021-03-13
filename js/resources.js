@@ -14,10 +14,24 @@ const locations = {
       {
         id: "stop",
         displayName: "Stop All Activities"
+      },
+      {
+        id: "travel",
+        displayName: "Leave for Clearing",
+        failText: "You do not have enough energy for that, try resting",
+        variableValues: {
+            travelTarget: 'meadow',
+            travelDistance: '25'
+        }
       }
     ],
     modifiers: {
         //TODO: Implement a rest buff
     }
-  }
+  },
+  meadow : {
+    locationName: "A Meadow",
+    locationDescription: "After leaving the house you find yourself in a wide open meadow of grass and bright colored flowers.  In the center stands a small stone cottage.  Woods lie in each direction and miles to the south, snow peaked mountains rise above the treeline.  ",
+    activities: []
+  }, 
 }

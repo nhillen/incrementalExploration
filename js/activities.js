@@ -7,8 +7,12 @@ const activities = {
 		timeTargetMultiplier: "restSpeedTargetMultiplier",
 		workPer: 1,
 		workMultiplier: "restSpeedMultiplier",
-
 	},
+	travel : {
+		variableWork: true,
+		variableWorkFunction: "getSpeedByTravelType",
+		variableWorkStat: "travelType"
+	}
 }
 
-const customActivities = ["stop"]
+const customActivities = ["stop", "travel"]
