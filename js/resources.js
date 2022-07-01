@@ -1,4 +1,4 @@
-var counters = {
+let counters = {
     time: 0
 }
 

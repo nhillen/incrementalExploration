@@ -1,8 +1,14 @@
-let defaultCharacter =
+const defaultCharacter =
 {
   energy: {
     current: 0,
     max: 50,
+    add: function(amount){
+      this.current += amount
+      if(this.current > this.max){
+        this.current = this.max;
+      }
+    },
   },
   energyPerRest: 1,
   timeToRest: 5,
@@ -14,23 +20,41 @@ let defaultCharacter =
   travelType: "Walking",
   skills: {
       walking: {
+        statDisplayName: "Walking",
         level: 0,
         xp: 0,
-        affectedStat: 'walkingSpeed',
-        ratio: 1/10
+        growthMultiplier: 1.25,
+        xpRequired: 10
       },
       stamina: {
+        statDisplayName: "Stamina",
         level: 0,
         xp: 0,
-        affectedStat: 'energy',
-        ratio: 1/10
+        growthMultiplier: 1.25,
+        xpRequired: 10
+      },
+      resting: {
+        statDisplayName: "Resting",
+        level: 0,
+        xp: 0,
+        growthMultiplier: 1.25,
+        xpRequired: 10,
+        boostPerLevel: .01
       }
-  }
+  },
+
+}
+
+const defaultSkill = {
+    level: 0,
+    xp : 0,
+    growthMultiplier: 1.25,
+    xpRequired: 10
 }
 
 let modifiedCharacter = 
 {
-  walkSpeed = 0
+  walkSpeed : 0
 }
 
 let modifiers = 
@@ -57,6 +81,14 @@ const statDisplayName = {
   restSpeedMultiplier: "Resting Speed Multiplier",
 }
 
-let statsToDisplay = [
-  "energy", "maxEnergy"
-]
+let derivedStats = {
+  displayedEnergy: {
+    name: "Energy",
+    value: function(){return "<b>Energy: </b>" + Math.floor(character.energy.current) + "/" + character.energy.max + "</br>"},
+  }
+}
+
+const statsToDisplay = {
+  "displayedEnergy": "derived",
+  "resting": "skill",
+}

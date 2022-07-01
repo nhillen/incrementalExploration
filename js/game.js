@@ -1,40 +1,17 @@
-var infoBlock = $('#widgetCounter');
 
-var currentActivity = '';
-var currentActivityCustomModifiers = {}
-var currentLocation = 'home';
-var currentActivityWork = 0;
-var currentActivityWorkTarget = 0;
+const infoBlock = $('#statsText');
+const activityTitle = $("#activityName")
+
+let currentActivity = '';
+let currentActivityCustomModifiers = {}
+let currentLocation = 'home';
+let currentActivityWork = 0;
+let currentActivityWorkTarget = 0;
 let character;
-var activityTextTimestamp = 0;
-var activityMessage = false;
+let activityTextTimestamp = 0;
+let activityMessage = false;
 
 const progress = document.querySelector('.progress-done');
-
-function drawObject() {
-
-    if (this.costType === "none" || this.costType.count >= this.cost) {
-        this.uiObject.show();
-        this.uiObject.prop('disabled', false);
-    } else {
-        this.uiObject.prop('disabled', true);
-    }
-
-    this.uiObject.prop('value', this.buttonTag + ": " + this.cost);
-}
-
-function findObject(someObject){
-    var returnObject;
-    //Get the ID of the passed in element
-    var checkUID = "#" + someObject.id;
-    _.each(allThings, function (name) {
-        if(name.UID === checkUID){
-            returnObject = name;
-        }
-    });
-
-    return returnObject;
-}
 
 function stop(){
   console.log("Stopping")
@@ -43,14 +20,21 @@ function stop(){
   currentActivityWorkTarget = 0;
   currentActivityWork = 0;
 
-  progress.setAttribute('data-done', 0 )
+  progress.setAttribute('data-done', "0" )
   progress.innerHTML = "0%"
 }
 
 function setActivity(name){
-  currentActivity = name;
-  setCurrentActivityCustomModifiers(name);
-  console.log("Activity set to " + name)
+    console.log("Setting Activity " + name)
+    if(name === "stop"){
+        //Special Case for stopping
+        stop();
+    } else {
+        currentActivity = name;
+        setCurrentActivityCustomModifiers(name);
+        activityTitle.html(name.substring(0,1).toUpperCase()+name.substring(1));
+    }
+
 }
 
 
@@ -58,9 +42,12 @@ function setActivity(name){
 function setCurrentActivityCustomModifiers(activityName){
   if(locations[currentLocation].activities){
     _.each(locations[currentLocation].activities, function(activity) {
-      if(activity.id == activityName){
+      if(activity.id === activityName){
         if(activity.variableValues){
           currentActivityCustomModifiers = activity.variableValues
+        }
+        if(activities[activityName].activityMessage){
+            setActivityMessage(activities[activityName].activityMessage)
         }
       }
     })
@@ -70,6 +57,7 @@ function setCurrentActivityCustomModifiers(activityName){
 //Figure out what to do with an activity
 //This is currently broken in that it will set an activity but only execute them once
 function runActivity(name){
+
   if(customActivities.includes(name)){
     //Do custom shit
     if (typeof window[name] === "function") {
@@ -79,29 +67,42 @@ function runActivity(name){
     } else {
       //panic
     }
-    return 
+
   } else {
     //TODO: Set the current activity
     runGenericActivity(name);
   }
+
 }
 
 function runGenericActivity(name){
-  let thisActivity = activities[name];
+  let thisActivity = activities[name]
 
-  let uiUpdateValue = 0;
-  if (currentActivityWorkTarget == 0 || !currentActivityWorkTarget) {
+  let uiUpdateValue
+  if (currentActivityWorkTarget === 0 || !currentActivityWorkTarget) {
     //Initialize activity
     currentActivityWorkTarget = character[thisActivity.timeTarget]
     //Apply any modifiers
     currentActivityWorkTarget = currentActivityWorkTarget * character[thisActivity.timeTargetMultiplier]
-    
-    console.log(currentActivityWorkTarget)
-  } 
+  }
+
+  //Make sure we should be running this activity
+    if(!thisActivity.canRun()){
+        stop();
+        setActivityMessage(thisActivity.failText);
+    }
 
   if (currentActivityWork >= currentActivityWorkTarget) {
-    gainResource(thisActivity.resourceGenerated, thisActivity.rate )
-
+      //Grant Rewards For Finishing Work
+      if(thisActivity.rewards){
+        _.each(thisActivity.rewards, function(reward){
+            if(reward.type === "stat"){
+                gainResource(reward.stat, reward.amount())
+            } else if(reward.type === "xp"){
+                grantXP(reward.stat, reward.amount())
+            }
+        })
+      }
     currentActivityWork = 0;
     uiUpdateValue = 100;
 
@@ -114,19 +115,31 @@ function runGenericActivity(name){
   currentActivityWork += character[thisActivity.workMultiplier] * 1
 }
 
-function gainResource(resource, amount){
-  let proposedResource = character[resource] + character[amount]
-  if(character[resource].max){
-    if(proposedResource < character[resource].max) {
-      character[resource] = proposedResource
-      //TODO: Figure out messaging
-      //setActivityMessage("Gained " + character.energyPerRest + " Energy from Resting")
+function gainResource(resource, amount, integerOnly = false){
+    let amountToAdd;
+
+    if(integerOnly){
+        amountToAdd = Math.floor(amount)
     } else {
-      character[resource] = character[resource].max
+        amountToAdd = parseFloat(amount.toPrecision(2))
     }
-  } else {
-    character[resource] = proposedResource
-  }
+
+    character[resource].add(amountToAdd)
+
+}
+
+function grantXP(skill, amount){
+    if(!character.skills[skill]){
+        character.skills[skill] = defaultSkill;
+    }
+    let tempSkill = character.skills[skill];
+
+    tempSkill.xp += amount;
+    if(tempSkill.xp >= tempSkill.xpRequired){
+        tempSkill.level++;
+        tempSkill.xp = 0;
+        tempSkill.xpRequired = Math.round(tempSkill.xpRequired * tempSkill.growthMultiplier);
+    }
 }
 
 function setActivityMessage(message){
@@ -154,34 +167,25 @@ function getSpeedByTravelType(type){
 }
 
 
+
 /*** MAIN LOOP ****************************************/
-
-$(document).ready(function () {
-
-   window.localStorage.clear();
+document.addEventListener("DOMContentLoaded", function(){
+    // Handler when the DOM is fully loaded
+    window.localStorage.clear();
     readSaveData();
 
     if (!character) {
-      character = defaultCharacter
-      setLocation('home')
+        character = defaultCharacter
+        setLocation('home')
     } else {
-      console.log(character.currentLocation)
-      setLocation(character.currentLocation)
+        console.log(character.currentLocation)
+        setLocation(character.currentLocation)
     }
 
-    var setup = function(){
-         $("#activityText").hide();
-        //Setup functions and parameters
-        /*
-        _.each(allThings, function (button) {
-            button.draw = drawObject;
-            button.uiObject = $(button.UID);
-            button.purchase = purchase;
-            $(button.UID).click(button.purchase);
-        });*/
+    const setup = function(){
+        $("#activityTextContainer").hide();
     }
-
-
+    setup();
 });
 
 window.setInterval(function () {
@@ -192,7 +196,7 @@ window.setInterval(function () {
 function runLoop() {
   if(currentActivity){
     runActivity(currentActivity)
-  } 
+  }
 
   counters.time++;
 }
@@ -219,7 +223,7 @@ function setupActivities(jsonObjectArray){
     return
   }
 
-   var activityArea = $("#ActivityContainer");
+   const activityArea = $("#ActivityContainer");
 
   _.each(jsonObjectArray, function(activity) {
       addActivityButton(activityArea, activity)
@@ -229,27 +233,36 @@ function setupActivities(jsonObjectArray){
 /* Refactored this to its own method in case we ever want to add one-off non-location buttons */
 //TODO: Implement Remove activity button
 function addActivityButton(area, activity){
-  var buttonHTML = '<button" class="btn btn-warning activityButton" id="'+activity.id +'">'+activity.displayName+'</button>';
+  let buttonHTML = '<button" class="btn btn-warning activityButton" id="'+activity.id +'">'+activity.displayName+'</button>';
   area.append(buttonHTML);
-  $("#"+ activity.id).click(function(){
-    var clickedBtnID = $(this).attr('id');
+  $("#"+ activity.id).on("click", function(){
+    const clickedBtnID = $(this).attr('id');
     setActivity(clickedBtnID)
   });
 }
 
 //Add method to add UI
 function drawUI() {
-    var outputText = counters.time + " seconds" + "<br/>";
+    let outputText = "<b>Current Session:</b> " + counters.time + " seconds" + "<br/>";
 
     outputText += "<h3>Stats</h3>";
-    _.each(statsToDisplay, function(statName){
-       outputText += statDisplayName[statName] + ": " + character[statName]+"<br/>"
+    _.each(statsToDisplay, function(statType, statName){
+        if(statType === "derived"){
+            outputText += derivedStats[statName].value() + "<br/>";
+        } else if (statType === "skill" && character.skills[statName]){
+            let thisStat = character.skills[statName]
+            outputText += thisStat.statDisplayName + ": " + thisStat.level + " (" + thisStat.xp + "/" + thisStat.xpRequired + ")" + "<br/>";
+        } else {
+            if((statDisplayName[statName]) && (character[statName])){
+                outputText += statDisplayName[statName] + ": " + character[statName]+"<br/>"
+            }
+        }
     });
 
 
     infoBlock.html(outputText);
 
-    // Draw all of the buttons
+    // Draw all the buttons
     /*
     _.each(allThings, function (button) {
         button.draw();
@@ -258,34 +271,37 @@ function drawUI() {
     progress.style.width = progress.getAttribute('data-done') + '%';
     progress.style.opacity = 1;
     if(activityMessage && Date.now() - activityTextTimestamp <= 2000){
-       if( $("#activityText").text() != activityMessage ){
-         $("#activityText").text(activityMessage);
-         $("#activityText").fadeIn("slower");
+        const activityText = $("#activityText");
+       if( activityText.text() !== activityMessage ){
+           activityText.text(activityMessage);
+           $("#activityTextContainer").fadeIn("slower");
        }
     } else if (activityMessage) {
 
       activityMessage = false;
-      $("#activityText").fadeOut("fast", function(){
+      $("#activityTextContainer").fadeOut("fast", function(){
           $(this).text("");
       });
     }
 
 }
 
+function getSkillModifier(skillName){
+    if(!character.skills[skillName]){
+        return 0;
+    }
+    return character.skills[skillName].level * character.skills[skillName].boostPerLevel;
+}
+
 /*** SAVE IO *******************************************/
 
 function readSaveData() {
-    var tempCounter =  window.localStorage.getItem("counters");
+    const tempCounter =  window.localStorage.getItem("counters");
     if(tempCounter){
         counters = JSON.parse(tempCounter);
     }
 
-    var tempButtons = window.localStorage.getItem("allButtons");
-    if(tempButtons){
-        allThings = JSON.parse(tempButtons);
-    }
-
-    var tempCharacter = window.localStorage.getItem("character");
+    const tempCharacter = window.localStorage.getItem("character");
     if(tempCharacter){
         character = JSON.parse(tempCharacter);
     }
@@ -293,6 +309,5 @@ function readSaveData() {
 
 function writeData() {
     window.localStorage.setItem("counters", JSON.stringify(counters));
-    window.localStorage.setItem("allButtons", JSON.stringify(allThings));
     window.localStorage.setItem("character", JSON.stringify(character));
 }
