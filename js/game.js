@@ -1,172 +1,232 @@
-
 const infoBlock = $('#statsText');
 const activityTitle = $("#activityName")
 
+const customActivities = ['travel'];
+
+let timerInterval;
+let activityInterval;
 let currentActivity = '';
 let currentActivityCustomModifiers = {}
 let currentLocation = 'home';
 let currentActivityWork = 0;
 let currentActivityWorkTarget = 0;
-let character;
 let activityTextTimestamp = 0;
 let activityMessage = false;
+let activityStopped = false;
 
-const progress = document.querySelector('.progress-done');
+let counters = {
+    time: 0
+}
 
+const progressBar = document.querySelector('.progress-bar');
+const progressBarMaxWidth = progressBar.offsetWidth;
+const progressBarFill = document.querySelector('.progress-bar-fill');
+const progressBarValue = document.querySelector('.progress-bar-value');
+
+
+/* Stops the current activity, resetting relevant variables. */
 function stop(){
-  console.log("Stopping")
-  currentActivity = false;
-  currentActivityCustomModifiers = false;
-  currentActivityWorkTarget = 0;
-  currentActivityWork = 0;
-
-  progress.setAttribute('data-done', "0" )
-  progress.innerHTML = "0%"
-}
-
-function setActivity(name){
-    console.log("Setting Activity " + name)
-    if(name === "stop"){
-        //Special Case for stopping
-        stop();
-    } else {
-        currentActivity = name;
-        setCurrentActivityCustomModifiers(name);
-        activityTitle.html(name.substring(0,1).toUpperCase()+name.substring(1));
-    }
-
-}
-
-
-//TODO: Rewrite this to not iterate through all activities in a location each time we set a new activity
-function setCurrentActivityCustomModifiers(activityName){
-  if(locations[currentLocation].activities){
-    _.each(locations[currentLocation].activities, function(activity) {
-      if(activity.id === activityName){
-        if(activity.variableValues){
-          currentActivityCustomModifiers = activity.variableValues
-        }
-        if(activities[activityName].activityMessage){
-            setActivityMessage(activities[activityName].activityMessage)
-        }
-      }
-    })
-  }  
-}
-
-//Figure out what to do with an activity
-//This is currently broken in that it will set an activity but only execute them once
-function runActivity(name){
-
-  if(customActivities.includes(name)){
-    //Do custom shit
-    if (typeof window[name] === "function") {
-      //Dynamically call the custom function
-      window[name](); //To call the function dynamically!
-      console.log("Running " + name)
-    } else {
-      //panic
-    }
-
-  } else {
-    //TODO: Set the current activity
-    runGenericActivity(name);
-  }
-
-}
-
-function runGenericActivity(name){
-  let thisActivity = activities[name]
-
-  let uiUpdateValue
-  if (currentActivityWorkTarget === 0 || !currentActivityWorkTarget) {
-    //Initialize activity
-    currentActivityWorkTarget = character[thisActivity.timeTarget]
-    //Apply any modifiers
-    currentActivityWorkTarget = currentActivityWorkTarget * character[thisActivity.timeTargetMultiplier]
-  }
-
-  //Make sure we should be running this activity
-    if(!thisActivity.canRun()){
-        stop();
-        setActivityMessage(thisActivity.failText);
-    }
-
-  if (currentActivityWork >= currentActivityWorkTarget) {
-      //Grant Rewards For Finishing Work
-      if(thisActivity.rewards){
-        _.each(thisActivity.rewards, function(reward){
-            if(reward.type === "stat"){
-                gainResource(reward.stat, reward.amount())
-            } else if(reward.type === "xp"){
-                grantXP(reward.stat, reward.amount())
-            }
-        })
-      }
+    console.log("stop");
+    currentActivity = false;
+    currentActivityCustomModifiers = false;
+    currentActivityWorkTarget = 0;
     currentActivityWork = 0;
-    uiUpdateValue = 100;
+    activityStopped = true;
 
-   } else {
-     uiUpdateValue = (currentActivityWork / currentActivityWorkTarget) * 100
-   }
-  progress.setAttribute('data-done', uiUpdateValue )
-  progress.innerHTML = uiUpdateValue + "%"
-
-  currentActivityWork += character[thisActivity.workMultiplier] * 1
+    // Update the progress bar to 0% when stopping the activity
+    updateProgressBar(0);
 }
 
-function gainResource(resource, amount, integerOnly = false){
+// Sets the current activity to name, updating the activity title and calling setCurrentActivityCustomModifiers() for the new activity.
+function setActivity(name) {
+    // Clear the interval to stop the current loop
+    stopLoop();
+
+
+    if (name === "stop") {
+        stop();
+        return;
+    }
+
+
+    // Extract variableValues from the player's current location
+    const location = locations[character.currentLocation];
+    console.log(character.currentLocation);
+
+    if (location.activities[name].variableValues) {
+        activities[name].variableValues = location.activities[name].variableValues;
+    } else {
+        console.log("No variable values");
+    }
+
+    const activity = activities[name];
+
+    if (!activity || (typeof activity.canRun === 'function' && !activity.canRun())) {
+        setActivityMessage(activity.failText);
+        return;
+    } else {
+        // Check and spend resourceCost for the activity
+        if (activity.requiresResource && typeof activity.resourceCost === 'function') {
+            const resourceCost = activity.resourceCost();
+            if (!spendResource(character, activity.resourceGenerated, resourceCost)) {
+                setActivityMessage("Not enough resources to start this activity");
+                return;
+            }
+        }
+    }
+
+    console.log("Setting Activity " + name);
+    activityStopped = false;
+    currentActivity = name;
+    setCurrentActivityCustomModifiers(name);
+    activityTitle.html(name.substring(0, 1).toUpperCase() + name.substring(1));
+
+    startLoop();
+}
+
+function spendResource(character, resource, amount) {
+    if (character[resource].current >= amount) {
+        character[resource].current -= amount;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+//Sets currentActivityCustomModifiers to the custom modifiers for the specified activity and sets the activity message to the message defined in the activities module, if any.
+function setCurrentActivityCustomModifiers(activityName){
+    const activity = locations[character.currentLocation]?.activities[activityName];
+
+    if (activity?.variableValues) {
+        currentActivityCustomModifiers = activity.variableValues;
+    }
+
+    if (activities[activityName]?.activityMessage) {
+        setActivityMessage(activities[activityName].activityMessage);
+    }
+}
+
+const customActivityFunctions = {
+
+};
+
+//	Calls the appropriate function to run the specified activity, either a custom function or runGenericActivity().
+function runActivity(name) {
+    console.log("Running " + name)
+    if (customActivityFunctions[name]) {
+        customActivityFunctions[name]();
+        console.log('Running ' + name);
+    } else {
+        const activity = locations[character.currentLocation]?.activities[name];
+        if (activity) {
+            runGenericActivity(name, activity);
+            if (activity.onCompletion) {
+                activity.onCompletion();
+            }
+        } else {
+            console.log("Couldn't find " + name);
+        }
+    }
+
+    updateProgressBar();
+}
+
+//Runs a generic activity with the specified name, updating the progress bar and giving rewards upon completion.
+function runGenericActivity(name){
+    const thisActivity = activities[name];
+    currentActivityWorkTarget = currentActivityWorkTarget || (character[thisActivity.timeTarget] * character[thisActivity.timeTargetMultiplier]);
+    const workMultiplier = character[thisActivity.workMultiplier] * 1;
+
+    console.log("Running " + name + " and work is " + currentActivityWork + " and target is " + currentActivityWorkTarget)
+    if (currentActivityWork >= currentActivityWorkTarget) {
+        if (thisActivity.rewards) {
+            console.log(thisActivity.rewards); // add this line to log the rewards array
+            thisActivity.rewards.forEach(function(reward) {
+                if (reward.type === "stat") {
+                    gainResource(character, reward.stat, reward.amount());
+                } else if (reward.type === "xp") {
+                    grantXP(character, reward.stat, reward.amount());
+                }
+            });
+        }
+        currentActivityWork = 0;
+    }
+
+
+    currentActivityWork += workMultiplier;
+}
+
+function updateProgressBar(forcedPercentage = null) {
+    console.log("UpdateProgressBar");
+    const percentage = forcedPercentage !== null ? forcedPercentage : (currentActivityWork / currentActivityWorkTarget) * 100;
+    const roundedPercentage = Math.floor(percentage);
+
+    console.log('Percentage:', percentage); // Add this line to log the percentage value
+
+    gsap.to(progressBarFill, {
+        width: `${roundedPercentage}%`,
+        opacity: 1,
+        onUpdate: () => {
+            progressBarValue.innerHTML = `${roundedPercentage}%`;
+            progressBarFill.style.width = `${roundedPercentage}%`;
+        }
+    });
+}
+
+
+
+//Adds the specified amount of the specified resource to the character, rounding to the nearest integer unless integerOnly is set to false.
+function gainResource(character, resource, amount, integerOnly = false){
     let amountToAdd;
 
     if(integerOnly){
-        amountToAdd = Math.floor(amount)
+        amountToAdd = amount | 0;
     } else {
-        amountToAdd = parseFloat(amount.toPrecision(2))
+        amountToAdd = Number.parseFloat(amount.toPrecision(2));
     }
 
-    character[resource].add(amountToAdd)
-
+    character[resource].add(amountToAdd);
 }
 
-function grantXP(skill, amount){
-    if(!character.skills[skill]){
-        character.skills[skill] = defaultSkill;
-    }
-    let tempSkill = character.skills[skill];
+function getDefaultSkillObject() {
+    return Object.assign({}, defaultSkill);
+}
 
-    tempSkill.xp += amount;
-    if(tempSkill.xp >= tempSkill.xpRequired){
-        tempSkill.level++;
-        tempSkill.xp = 0;
-        tempSkill.xpRequired = Math.round(tempSkill.xpRequired * tempSkill.growthMultiplier);
+//Grants the specified amount of XP to the specified skill for the given character, increasing the skill's level if enough XP has been earned.
+function grantXP(character, skillName, amount) {
+    console.log(`Granting ${amount} XP to skill ${skillName}`);
+    console.log(skillName);
+    const skill = character.skills[skillName];
+    skill.xp += amount;
+    while (skill.xp >= skill.xpRequired) {
+        skill.level++;
+        skill.xp -= skill.xpRequired;
+        skill.xpRequired *= skill.growthMultiplier;
+        updateCharacterStat(skillName, skill);
+        setActivityMessage(`<b>${skillName}</b> skill increased to level <b>${character.skills[skillName].level}</b>!`);
     }
 }
 
-function setActivityMessage(message){
+
+//Sets the current activity message to the specified message, fading it in or out depending on whether the message is truthy or falsy, respectively.
+function setActivityMessage(message) {
     activityTextTimestamp = Date.now();
     activityMessage = message;
+    /*
+    const activityText = $("#activityText");
+    if (activityMessage) {
+        activityText.text(activityMessage);
+        $("#activityTextContainer").fadeIn("slower");
+    } else {
+        $("#activityTextContainer").fadeOut("fast", function() {
+            $(this).text("");
+        });
+    }*/
+
+    const activityText = document.getElementById("activityText");
+    activityText.innerHTML = message;
+    $('.toast').toast('show');
 }
-
-/*** Custom Activities ********************************/
-//TODO:  Move all travel stuff into its own JS
-function travel(){
-  console.log(currentActivityCustomModifiers);
-  let travelType = character.travelType;
-  const TravelSpeed = getSpeedByTravelType(travelType);
-}
-
-function getSpeedByTravelType(type){
-  switch(type){
-    case "walking":
-      return character.walkingSpeed;
-    default: 
-      return 0;
-  }
-
-
-}
-
-
 
 /*** MAIN LOOP ****************************************/
 document.addEventListener("DOMContentLoaded", function(){
@@ -188,60 +248,88 @@ document.addEventListener("DOMContentLoaded", function(){
     setup();
 });
 
-window.setInterval(function () {
-    runLoop();
-    drawUI();
-}, 1000);
+function startLoop() {
+    // Timer loop: increments the timer every second
+    timerInterval = window.setInterval(function() {
+        counters.time++;
+        drawUI();
+    }, 1000);
 
-function runLoop() {
-  if(currentActivity){
-    runActivity(currentActivity)
-  }
-
-  counters.time++;
+    // Activity loop: updates the progress bar every second if an activity is running
+    activityInterval = window.setInterval(function() {
+        if (currentActivity && !activityStopped) {
+            runActivity(currentActivity);
+        }
+    }, 1000);
 }
 
-
-/* This takes a string index which sets the UI elements for the UI*/
-function setLocation(key){
-   if(!locations[key]){
-    console.log("Location doesnt exist");
-    return
-   } else {
-     character.currentLocation = locations[key]
-     $("#locationName").text(locations[key].locationName)
-     $("#locationDescription").text(locations[key].locationDescription)
-   }
-
-   setupActivities(locations[key].activities)
+// Modify the stopLoop function
+function stopLoop() {
+    clearInterval(activityInterval);
 }
 
-/* Set up activity buttons for each activity in our current location*/
-function setupActivities(jsonObjectArray){
-  if(!jsonObjectArray){
-    //No Activities
-    return
-  }
+//Sets the current location to the location with the specified key, updating the location name and description and calling setupActivities() with the activities for the new location.
+function setLocation(key) {
+    if (!locations[key]) {
+        console.log("Location doesn't exist");
+        return;
+    } else {
+        character.currentLocation = key; // Updated this line
+        $("#locationName").text(locations[key].locationName);
+        $("#locationDescription").text(locations[key].locationDescription);
+    }
 
-   const activityArea = $("#ActivityContainer");
-
-  _.each(jsonObjectArray, function(activity) {
-      addActivityButton(activityArea, activity)
-  });
+    const mergedActivities = mergeDefaultActivities(locations[key].activities);
+    setupActivities(mergedActivities);
 }
 
-/* Refactored this to its own method in case we ever want to add one-off non-location buttons */
-//TODO: Implement Remove activity button
-function addActivityButton(area, activity){
-  let buttonHTML = '<button" class="btn btn-warning activityButton" id="'+activity.id +'">'+activity.displayName+'</button>';
-  area.append(buttonHTML);
-  $("#"+ activity.id).on("click", function(){
-    const clickedBtnID = $(this).attr('id');
-    setActivity(clickedBtnID)
-  });
+function mergeDefaultActivities(locationActivities) {
+    const mergedActivities = {};
+
+    // Iterate through the default activities
+    for (const [key, value] of Object.entries(defaultActivities)) {
+        mergedActivities[key] = value;
+    }
+
+    // Iterate through the location's activities
+    for (const [key, value] of Object.entries(locationActivities)) {
+        mergedActivities[key] = value;
+    }
+
+    return mergedActivities;
 }
 
-//Add method to add UI
+/* Adds an activity button for each activity in the specified jsonObjectArray. */
+function setupActivities(jsonObjectArray) {
+    if (!jsonObjectArray) {
+        // No Activities
+        return;
+    }
+
+    const activityArea = $("#ActivityContainer");
+
+    _.each(jsonObjectArray, function (activity, activityName) {
+        addActivityButton(activityArea, activityName, activity);
+    });
+}
+
+/* Adds an activity button to the specified area for the given activity, with a display name and ID based on the activity object. */
+function addActivityButton(area, activityName, activity) {
+    console.log(activity);
+    let buttonHTML = '<button class="btn btn-warning activityButton" id="' + activityName + '">' + activity.displayName + '</button>';
+    area.append(buttonHTML);
+    $("#" + activityName).on("click", function() {
+        const clickedBtnID = $(this).attr('id');
+        setActivity(clickedBtnID);
+    });
+}
+
+/* Removes an activity button with the specified id */
+function removeActivityButton(id) {
+    $("#" + id).remove();
+}
+
+/* Updates the information block with the character's stats and progress bar, and updates the activity message if necessary.*/
 function drawUI() {
     let outputText = "<b>Current Session:</b> " + counters.time + " seconds" + "<br/>";
 
@@ -268,20 +356,18 @@ function drawUI() {
         button.draw();
     });*/
 
-    progress.style.width = progress.getAttribute('data-done') + '%';
-    progress.style.opacity = 1;
     if(activityMessage && Date.now() - activityTextTimestamp <= 2000){
         const activityText = $("#activityText");
-       if( activityText.text() !== activityMessage ){
-           activityText.text(activityMessage);
-           $("#activityTextContainer").fadeIn("slower");
-       }
+        if( activityText.text() !== activityMessage ){
+            activityText.text(activityMessage);
+            $("#activityTextContainer").fadeIn("slower");
+        }
     } else if (activityMessage) {
 
-      activityMessage = false;
-      $("#activityTextContainer").fadeOut("fast", function(){
-          $(this).text("");
-      });
+        activityMessage = false;
+        $("#activityTextContainer").fadeOut("fast", function(){
+            $(this).text("");
+        });
     }
 
 }
@@ -292,8 +378,6 @@ function getSkillModifier(skillName){
     }
     return character.skills[skillName].level * character.skills[skillName].boostPerLevel;
 }
-
-/*** SAVE IO *******************************************/
 
 function readSaveData() {
     const tempCounter =  window.localStorage.getItem("counters");
@@ -311,3 +395,38 @@ function writeData() {
     window.localStorage.setItem("counters", JSON.stringify(counters));
     window.localStorage.setItem("character", JSON.stringify(character));
 }
+
+function logVar(obj) {
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            console.log(`${key}:`, obj[key]);
+        }
+    }
+}
+
+const homeButton = document.getElementById("homeButton");
+const statsButton = document.querySelector('[data-tab="stats"]');
+
+homeButton.addEventListener("click", () => {
+    const locationContainer = document.getElementById("locationContainer");
+    const statsContainer = document.getElementById("statsContainer");
+    locationContainer.style.display = "";
+    statsContainer.style.display = "none";
+});
+
+statsButton.addEventListener("click", () => {
+    const locationContainer = document.getElementById("locationContainer");
+    const statsContainer = document.getElementById("statsContainer");
+    if (locationContainer.style.display !== "none") {
+        locationContainer.style.display = "none";
+        statsContainer.style.display = "";
+        drawUI();
+    }
+});
+
+$(function() {
+    $('#toastClose').on("click", function() {
+        console.log("Clicked");
+        $('.toast').toast('hide');
+    });
+});

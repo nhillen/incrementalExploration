@@ -4,38 +4,30 @@
 <head>
     <title>Click Test</title>
     <link rel="stylesheet" type="text/css" href="css/style.css"/>
-    <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"
-          integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
-
 </head>
 
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <a class="navbar-brand" href="#">Navbar</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
-                        aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                    <div class="navbar-nav">
-                        <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
-                        <a class="nav-item nav-link" href="#">Locations</a>
-                        <button class="nav-item nav-link" data-toggle="modal" data-target="#exampleModal2" href="#">View
-                            Stats
-                        </button>
-                    </div>
-                </div>
-            </nav>
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Incremental Game</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" id="homeButton">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-tab="stats">View Stats</a>
+                </li>
+            </ul>
         </div>
+    </nav>
+    <div id="locationContainer">
         <div class="row">
             <div class="col-md-8">
                 <div class="card">
@@ -43,27 +35,28 @@
                     <div class="card-body">
                         <h5 class="card-title" id="locationName">locationName</h5>
                         <p class="card-text" id="locationDescription">locationDescription</p>
+                        <div id="ActivityContainer"></div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12" style="padding-top: 10px; padding-left: 10px" id="activityTextContainer">
-                        <div class="alert alert-primary" id="activityText"></div>
-                    </div>
-                    <div class="col-md-12" id="ActivityContainer"></div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <h5 class="card-header">Activity</h5>
-                    <div class="card-body">
-                        <h5 class="card-title" id="activityName">No Activity</h5>
-                        <div class="progress">
-                            <div class="progress-done" data-done="0"> 70%</div>
-                        </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-3">
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="true" data-delay="5000">
+                    <div class="toast-header">
+                        <strong class="mr-auto">Activity</strong>
+                        <small class="text-muted">just now</small>
+                        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" id="toastClose" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-
+                    <div class="toast-body" id="activityText"></div>
                 </div>
-                <br/>
+            </div>
+        </div>
+    </div>
+    <div id="statsContainer" style="display: none">
+        <div class="row">
+            <div class="col-md-12">
                 <div class="card">
                     <h5 class="card-header">Buffs</h5>
                     <div class="row">
@@ -72,7 +65,11 @@
                         </div>
                     </div>
                 </div>
-                <br/>
+            </div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="col-md-12">
                 <div class="card">
                     <h5 class="card-header">Basic Stats</h5>
                     <div class="row">
@@ -84,52 +81,33 @@
             </div>
         </div>
     </div>
-    <br/>
-
-</div>
-
-
-<div class="row">
-    <div class="col-mid-3"></div>
-
-
-</div>
-
-<div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel2"
-     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-slideout modal-sm" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Full Stats</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <div class="modal-body">
-
-                <div id="infoBlock">
-                    <div id="widgetCounter">
-                        Temp
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-md-12">
+                <div class="card">
+                    <h5 class="card-header">Activity</h5>
+                    <div class="card-body">
+                        <h5 class="card-title" id="activityName">No Activity</h5>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" data-done="0"></div>
+                            <div class="progress-bar-value">0/0</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
         </div>
     </div>
+
 </div>
 
 <script src="./modules/jquery-3.6.0.min.js"></script>
 <script src="./modules/popper.min.js"></script>
 <script src="./modules/bootstrap.min.js"></script>
-
+<script src="./modules/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-<script src="js/js.cookie.js" type="text/javascript"></script>
-<script src="js/resources.js" type="text/javascript"></script>
+<script src="js/locations.js" type="text/javascript"></script>
 <script src="js/activities.js" type="text/javascript"></script>
 <script src="js/character.js" type="text/javascript"></script>
+<script src="js/travel.js" type="text/javascript"></script>
 <script src="js/game.js" type="text/javascript"></script>
-</body>
 
+</body>
 </html>
