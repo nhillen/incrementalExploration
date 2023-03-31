@@ -1,4 +1,4 @@
-const character = {
+let character = {
   energy: {
     current: 0,
     max: 50,

@@ -31,7 +31,7 @@ const locations = {
         failText: "You do not have enough energy for that, try resting",
         variableValues: {
           travelTarget: 'meadow',
-          travelDistance: '25',
+          travelDistance: '2',
         },
       },
     },
@@ -54,6 +54,12 @@ const locations = {
         variableValues: {
           travelTarget: 'home',
           travelDistance: '25',
+        },
+      },
+      herbalism: {
+        displayName: "Pick flowers",
+        variableValues: {
+          herbs: ["Daisy", "Bluebell"],
         },
       },
     },

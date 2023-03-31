@@ -45,18 +45,54 @@ const activities = {
 			return travel.getRewards(this.variableValues.travelDistance);
 		},
 		onCompletion: function () {
-			character.currentLocation = this.variableValues.travelTarget;
+			setLocation(this.variableValues.travelTarget);
+			stop();
 		},
 		timeTarget: function () {
 			return this.variableValues.travelDistance;
 		},
 		timeTargetMultiplier: function () {
-			const travel = new Travel(character.travelType);
-			return 1 / travel.getTravelSpeed();
+			return 1
 		},
 		workPer: 1,
 		workMultiplier: function () {
-			return 1; // Since timeTargetMultiplier accounts for travel speed, this can be set to 1
+			const travel = new Travel(character.travelType);
+			console.log(travel);
+			const travelSpeed = travel.getTravelSpeed();
+			console.log(travelSpeed);
+			return travelSpeed; // Move the travel speed logic to workMultiplier
 		},
 	},
+	herbalism: {
+		displayName: "Pick Flowers",
+		activityMessage: "You start picking flowers",
+		canRun: function() { return true; },
+		failText: "You cannot pick flowers at the moment",
+		requiresResource: false,
+		currentHerb: null,
+		rewards: function() {
+			const pickedHerb = getRandomHerb();
+			const success = checkHerbalismSuccess(pickedHerb);
+
+			if (success) {
+				inventory.addItem(pickedHerb, 1);
+				return [
+					{
+						type: "xp",
+						stat: "herbalism",
+						amount: function() { return 1; }
+					}
+				];
+			} else {
+				return [];
+			}
+		},
+		timeTarget: function() {
+			this.currentHerb = getRandomHerb(this.variableValues.herbs);
+			this.timeTarget = herbs[this.currentHerb].difficulty;
+		},
+		timeTargetMultiplier: "pickFlowersSpeedTargetMultiplier",
+		workPer: 1,
+		workMultiplier: "pickFlowersSpeedMultiplier",
+	}
 }

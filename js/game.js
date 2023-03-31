@@ -112,17 +112,14 @@ const customActivityFunctions = {
 
 //	Calls the appropriate function to run the specified activity, either a custom function or runGenericActivity().
 function runActivity(name) {
-    console.log("Running " + name)
+
     if (customActivityFunctions[name]) {
         customActivityFunctions[name]();
-        console.log('Running ' + name);
+        console.log('Custom Function: ' + name);
     } else {
         const activity = locations[character.currentLocation]?.activities[name];
         if (activity) {
             runGenericActivity(name, activity);
-            if (activity.onCompletion) {
-                activity.onCompletion();
-            }
         } else {
             console.log("Couldn't find " + name);
         }
@@ -134,31 +131,69 @@ function runActivity(name) {
 //Runs a generic activity with the specified name, updating the progress bar and giving rewards upon completion.
 function runGenericActivity(name){
     const thisActivity = activities[name];
-    currentActivityWorkTarget = currentActivityWorkTarget || (character[thisActivity.timeTarget] * character[thisActivity.timeTargetMultiplier]);
-    const workMultiplier = character[thisActivity.workMultiplier] * 1;
 
-    console.log("Running " + name + " and work is " + currentActivityWork + " and target is " + currentActivityWorkTarget)
+    setWorkTarget(character, thisActivity);
+
+    const workMultiplier = typeof thisActivity.workMultiplier === 'function' ? thisActivity.workMultiplier() : getStatMultiplier(thisActivity.workMultiplier);
+
     if (currentActivityWork >= currentActivityWorkTarget) {
         if (thisActivity.rewards) {
             console.log(thisActivity.rewards); // add this line to log the rewards array
-            thisActivity.rewards.forEach(function(reward) {
-                if (reward.type === "stat") {
-                    gainResource(character, reward.stat, reward.amount());
-                } else if (reward.type === "xp") {
-                    grantXP(character, reward.stat, reward.amount());
-                }
-            });
+
+            if(typeof thisActivity.rewards === "function") {
+                console.log("Rewards is a function");
+                thisActivity.rewards();
+            } else {
+                console.log("Rewards is not a function");
+
+                thisActivity.rewards.forEach(function(reward) {
+                    if (reward.type === "stat") {
+                        gainResource(character, reward.stat, reward.amount());
+                    } else if (reward.type === "xp") {
+                        grantXP(character, reward.stat, reward.amount());
+                    }
+                });
+            }
+        }
+
+        if(thisActivity.onCompletion) {
+            thisActivity.onCompletion();
         }
         currentActivityWork = 0;
     }
 
-
     currentActivityWork += workMultiplier;
+}
+
+function setWorkTarget(character, activity) {
+    if(currentActivityWorkTarget) return;
+
+    //Check to see if timeTarget for this activity is a function, if so call it, if not assume it is a value and pull it from the character
+    if (typeof activity.timeTarget === 'function') {
+        currentActivityWorkTarget = activity.timeTarget();
+    } else {
+        currentActivityWorkTarget = getStatMultiplier(activity.timeTarget) * getStatMultiplier(activity.timeTargetMultiplier);
+    }
+
+}
+
+
+function getStatMultiplier(statMultiplier) {
+    //if statMultiplier isnt a string, return it
+    if (typeof statMultiplier !== 'string') {
+        return statMultiplier;
+    }
+
+    if(character[statMultiplier]){
+        return character[statMultiplier];
+    } else {
+        return 1;
+    }
 }
 
 function updateProgressBar(forcedPercentage = null) {
     console.log("UpdateProgressBar");
-    const percentage = forcedPercentage !== null ? forcedPercentage : (currentActivityWork / currentActivityWorkTarget) * 100;
+    const percentage = forcedPercentage !== null ? forcedPercentage : (currentActivityWork / (currentActivityWorkTarget || 1)) * 100;
     const roundedPercentage = Math.floor(percentage);
 
     console.log('Percentage:', percentage); // Add this line to log the percentage value
@@ -307,6 +342,7 @@ function setupActivities(jsonObjectArray) {
     }
 
     const activityArea = $("#ActivityContainer");
+    activityArea.empty();
 
     _.each(jsonObjectArray, function (activity, activityName) {
         addActivityButton(activityArea, activityName, activity);
@@ -347,6 +383,16 @@ function drawUI() {
         }
     });
 
+    const inventoryTemplate = _.template(`
+  <% _.each(inventory.items, function(count, item) { %>
+    <div><%= item %>: <%= count %></div>
+  <% }); %>
+`);
+
+// Inside your code that updates the inventory
+    const inventoryHtml = inventoryTemplate({ inventory });
+    $('#inventoryText').html(inventoryHtml);
+
 
     infoBlock.html(outputText);
 
@@ -380,20 +426,40 @@ function getSkillModifier(skillName){
 }
 
 function readSaveData() {
-    const tempCounter =  window.localStorage.getItem("counters");
-    if(tempCounter){
-        counters = JSON.parse(tempCounter);
-    }
-
-    const tempCharacter = window.localStorage.getItem("character");
-    if(tempCharacter){
-        character = JSON.parse(tempCharacter);
+    const savedData = localStorage.getItem('incrementalGameData');
+    if (savedData) {
+        const gameData = JSON.parse(savedData);
+        character = gameData.character;
+        counters = gameData.counters;
     }
 }
 
-function writeData() {
-    window.localStorage.setItem("counters", JSON.stringify(counters));
-    window.localStorage.setItem("character", JSON.stringify(character));
+function saveGame() {
+    const gameData = {
+        character: character,
+        counters: counters
+    };
+    window.localStorage.setItem("incrementalGameData", JSON.stringify(gameData));
+    console.log("Game saved.");
+}
+
+function deleteSave() {
+    if (confirm("Are you sure you want to delete your saved game? This action cannot be undone.")) {
+        localStorage.removeItem('incrementalGameData');
+        alert("Save deleted.");
+    }
+}
+
+let autosaveInterval;
+function toggleAutosave() {
+    if (autosaveInterval) {
+        clearInterval(autosaveInterval);
+        autosaveInterval = null;
+        alert("Autosave disabled.");
+    } else {
+        autosaveInterval = setInterval(saveGame, 60000); // Save every 60 seconds
+        alert("Autosave enabled.");
+    }
 }
 
 function logVar(obj) {
@@ -406,22 +472,34 @@ function logVar(obj) {
 
 const homeButton = document.getElementById("homeButton");
 const statsButton = document.querySelector('[data-tab="stats"]');
+const settingsButton = document.querySelector('[data-tab="settings"]');
 
 homeButton.addEventListener("click", () => {
     const locationContainer = document.getElementById("locationContainer");
     const statsContainer = document.getElementById("statsContainer");
+    const settingsContainer = document.getElementById("settingsContainer");
     locationContainer.style.display = "";
     statsContainer.style.display = "none";
+    settingsContainer.style.display = "none";
 });
 
 statsButton.addEventListener("click", () => {
     const locationContainer = document.getElementById("locationContainer");
     const statsContainer = document.getElementById("statsContainer");
-    if (locationContainer.style.display !== "none") {
-        locationContainer.style.display = "none";
-        statsContainer.style.display = "";
-        drawUI();
-    }
+    const settingsContainer = document.getElementById("settingsContainer");
+    locationContainer.style.display = "none";
+    statsContainer.style.display = "";
+    settingsContainer.style.display = "none";
+    drawUI();
+});
+
+settingsButton.addEventListener("click", () => {
+    const locationContainer = document.getElementById("locationContainer");
+    const statsContainer = document.getElementById("statsContainer");
+    const settingsContainer = document.getElementById("settingsContainer");
+    locationContainer.style.display = "none";
+    statsContainer.style.display = "none";
+    settingsContainer.style.display = "";
 });
 
 $(function() {
@@ -429,4 +507,13 @@ $(function() {
         console.log("Clicked");
         $('.toast').toast('hide');
     });
+
+    $("#saveButton").on("click", saveGame);
+    $("#autosaveButton").on("click", toggleAutosave);
+    $("#deleteButton").on("click", deleteSave);
+
+    autosaveInterval = setInterval(saveGame, 60000); // Save every 60 seconds
 });
+
+readSaveData();
+
