@@ -163,6 +163,10 @@ function runGenericActivity(name){
     }
 
     currentActivityWork += workMultiplier;
+
+    // Call updateProgressBar with the correct percentage
+    const percentage = (currentActivityWork / (currentActivityWorkTarget || 1)) * 100;
+    updateProgressBar(percentage);
 }
 
 function setWorkTarget(character, activity) {
