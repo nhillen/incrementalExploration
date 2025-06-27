@@ -219,7 +219,7 @@ function gainResource(character, resource, amount, integerOnly = false){
     let amountToAdd;
 
     if(integerOnly){
-        amountToAdd = amount | 0;
+        amountToAdd = Math.round(amount);
     } else {
         amountToAdd = Number.parseFloat(amount.toPrecision(2));
     }
