@@ -138,15 +138,13 @@ function runGenericActivity(name){
 
     if (currentActivityWork >= currentActivityWorkTarget) {
         if (thisActivity.rewards) {
-            console.log(thisActivity.rewards); // add this line to log the rewards array
+            const rewards =
+                typeof thisActivity.rewards === "function"
+                    ? thisActivity.rewards()
+                    : thisActivity.rewards;
 
-            if(typeof thisActivity.rewards === "function") {
-                console.log("Rewards is a function");
-                thisActivity.rewards();
-            } else {
-                console.log("Rewards is not a function");
-
-                thisActivity.rewards.forEach(function(reward) {
+            if (Array.isArray(rewards)) {
+                rewards.forEach(function (reward) {
                     if (reward.type === "stat") {
                         gainResource(character, reward.stat, reward.amount());
                     } else if (reward.type === "xp") {
