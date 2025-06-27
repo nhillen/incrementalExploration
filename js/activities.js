@@ -87,10 +87,11 @@ const activities = {
 				return [];
 			}
 		},
-		timeTarget: function() {
-			this.currentHerb = getRandomHerb(this.variableValues.herbs);
-			this.timeTarget = herbs[this.currentHerb].difficulty;
-		},
+               timeTarget: function() {
+                       this.currentHerb = getRandomHerb(this.variableValues.herbs);
+                       const herbDifficulty = findHerbByName(this.currentHerb).difficulty;
+                       return herbDifficulty;
+               },
 		timeTargetMultiplier: "pickFlowersSpeedTargetMultiplier",
 		workPer: 1,
 		workMultiplier: "pickFlowersSpeedMultiplier",
