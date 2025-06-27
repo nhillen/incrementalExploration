@@ -183,7 +183,7 @@ function setWorkTarget(character, activity) {
 
 
 function getStatMultiplier(statMultiplier) {
-    //if statMultiplier isnt a string, return it
+    //if statMultiplier isn't a string, return it
     if (typeof statMultiplier !== 'string') {
         return statMultiplier;
     }
