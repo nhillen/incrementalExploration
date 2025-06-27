@@ -36,3 +36,5 @@ class Travel {
         ];
     }
 }
+
+module.exports = Travel;
