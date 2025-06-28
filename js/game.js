@@ -22,6 +22,7 @@ const progressBar = document.querySelector('.progress-bar');
 const progressBarMaxWidth = progressBar.offsetWidth;
 const progressBarFill = document.querySelector('.progress-bar-fill');
 const progressBarValue = document.querySelector('.progress-bar-value');
+let progressBarTween = null;
 
 
 /* Stops the current activity, resetting relevant variables. */
@@ -33,14 +34,25 @@ function stop(){
     currentActivityWork = 0;
     activityStopped = true;
 
+    if (progressBarTween) {
+        progressBarTween.kill();
+        progressBarTween = null;
+    }
+
     // Update the progress bar to 0% when stopping the activity
-    updateProgressBar(0);
+    updateProgressBar(0, 0);
 }
 
 // Sets the current activity to name, updating the activity title and calling setCurrentActivityCustomModifiers() for the new activity.
 function setActivity(name) {
     // Clear the interval to stop the current loop
     stopLoop();
+
+    if (progressBarTween) {
+        progressBarTween.kill();
+        progressBarTween = null;
+    }
+    updateProgressBar(0, 0);
 
 
     if (name === "stop") {
@@ -125,7 +137,6 @@ function runActivity(name) {
         }
     }
 
-    updateProgressBar();
 }
 
 //Runs a generic activity with the specified name, updating the progress bar and giving rewards upon completion.
@@ -158,13 +169,15 @@ function runGenericActivity(name){
             thisActivity.onCompletion();
         }
         currentActivityWork = 0;
+        currentActivityWorkTarget = 0;
+        updateProgressBar(0, 0);
+        return;
     }
 
     currentActivityWork += workMultiplier;
 
-    // Call updateProgressBar with the correct percentage
     const percentage = (currentActivityWork / (currentActivityWorkTarget || 1)) * 100;
-    updateProgressBar(percentage);
+    updateProgressBar(percentage, 1);
 }
 
 function setWorkTarget(character, activity) {
@@ -193,19 +206,22 @@ function getStatMultiplier(statMultiplier) {
     }
 }
 
-function updateProgressBar(forcedPercentage = null) {
-    console.log("UpdateProgressBar");
-    const percentage = forcedPercentage !== null ? forcedPercentage : (currentActivityWork / (currentActivityWorkTarget || 1)) * 100;
-    const roundedPercentage = Math.floor(percentage);
+function updateProgressBar(targetPercentage = null, duration = 1) {
+    const percentage = targetPercentage !== null ? targetPercentage : (currentActivityWork / (currentActivityWorkTarget || 1)) * 100;
 
-    console.log('Percentage:', percentage); // Add this line to log the percentage value
+    if (progressBarTween) {
+        progressBarTween.kill();
+    }
 
-    gsap.to(progressBarFill, {
-        width: `${roundedPercentage}%`,
+    progressBarTween = gsap.to(progressBarFill, {
+        width: `${percentage}%`,
+        duration: duration,
+        ease: 'linear',
         opacity: 1,
         onUpdate: () => {
-            progressBarValue.innerHTML = `${roundedPercentage}%`;
-            progressBarFill.style.width = `${roundedPercentage}%`;
+            const width = parseFloat(gsap.getProperty(progressBarFill, 'width'));
+            const pct = Math.floor((width / progressBarMaxWidth) * 100);
+            progressBarValue.innerHTML = `${pct}%`;
         }
     });
 }
