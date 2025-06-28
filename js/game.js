@@ -212,16 +212,13 @@ function updateProgressBar(targetPercentage = null, duration = 1) {
         progressBarTween.kill();
     }
 
-    const maxWidth = progressBar.offsetWidth;
-
     progressBarTween = gsap.to(progressBarFill, {
         width: `${percentage}%`,
         duration: duration,
         ease: 'linear',
         opacity: 1,
         onUpdate: () => {
-            const width = parseFloat(gsap.getProperty(progressBarFill, 'width'));
-            const pct = Math.floor((width / maxWidth) * 100);
+            const pct = Math.floor(gsap.getProperty(progressBarFill, 'width'));
             progressBarValue.innerHTML = `${pct}%`;
         },
         onComplete: () => {
