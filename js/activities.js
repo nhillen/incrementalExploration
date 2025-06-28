@@ -36,10 +36,10 @@ const activities = {
 		failText: "You do not have enough energy for that, try resting",
 		requiresResource: true,
 		resourceGenerated: "energy",
-		resourceCost: function () {
-			const travel = new Travel(character.travelType);
-			return -travel.getTravelCost(this.variableValues.travelDistance);
-		},
+                resourceCost: function () {
+                        const travel = new Travel(character.travelType);
+                        return travel.getTravelCost(this.variableValues.travelDistance);
+                },
 		rewards: function () {
 			const travel = new Travel(character.travelType);
 			return travel.getRewards(this.variableValues.travelDistance);
