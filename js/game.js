@@ -51,8 +51,8 @@ function stop(){
     currentActivityWorkTarget = 0;
     currentActivityWork = 0;
     activityStopped = true;
-
-    // Update the progress bar to 0% when stopping the activity
+    // Update the activity display and progress bar when stopping
+    activityTitle.html("No Activity");
     updateProgressBar(0);
 }
 
@@ -181,6 +181,8 @@ function runGenericActivity(name){
             thisActivity.onCompletion();
         }
         currentActivityWork = 0;
+        // Exit early so the progress bar isn't updated again after completion
+        return;
     }
 
     currentActivityWork += workMultiplier;
