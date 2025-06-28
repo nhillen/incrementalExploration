@@ -58,7 +58,9 @@ function stop(){
     }
 
     // Update the progress bar to 0% when stopping the activity
+    activityTitle.html("No Activity");
     updateProgressBar(0, 0);
+
 }
 
 // Sets the current activity to name, updating the activity title and calling setCurrentActivityCustomModifiers() for the new activity.
@@ -174,10 +176,14 @@ function runGenericActivity(name){
 
             if (Array.isArray(rewards)) {
                 rewards.forEach(function (reward) {
+                    const amount =
+                        typeof reward.amount === "function"
+                            ? reward.amount()
+                            : reward.amount;
                     if (reward.type === "stat") {
-                        gainResource(character, reward.stat, reward.amount());
+                        gainResource(character, reward.stat, amount);
                     } else if (reward.type === "xp") {
-                        grantXP(character, reward.stat, reward.amount());
+                        grantXP(character, reward.stat, amount);
                     }
                 });
             }
@@ -189,6 +195,7 @@ function runGenericActivity(name){
         currentActivityWork = 0;
         currentActivityWorkTarget = 0;
         updateProgressBar(0, 0);
+        // Exit early so the progress bar isn't updated again after completion
         return;
     }
 

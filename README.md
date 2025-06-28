@@ -16,3 +16,14 @@ Run the following commands from the repository root:
 This will copy `index.html`, `css`, `js`, `modules`, and the `docs` folder to the `gh-pages` branch and push it to `origin`.
 
 After running the script, configure GitHub Pages in the repository settings to serve from the `gh-pages` branch.
+
+## Testing Tips
+
+For quick testing you can give your character extra energy directly from the browser console:
+
+```javascript
+// Add 100 energy (cannot exceed the character's max)
+character.energy.add(100);
+```
+
+Run this while the game is loaded in the browser to instantly refill energy.
