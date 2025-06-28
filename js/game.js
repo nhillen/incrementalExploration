@@ -298,7 +298,12 @@ function setActivityMessage(message) {
 
     const activityText = document.getElementById("activityText");
     activityText.innerHTML = message;
-    $('.toast').toast('show');
+
+    const toast = document.querySelector('.toast');
+    if (toast) {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 5000);
+    }
 }
 
 /*** MAIN LOOP ****************************************/
@@ -545,7 +550,7 @@ settingsButton.addEventListener("click", () => {
 $(function() {
     $('#toastClose').on("click", function() {
         console.log("Clicked");
-        $('.toast').toast('hide');
+        $('.toast').removeClass('show');
     });
 
     $("#saveButton").on("click", saveGame);
