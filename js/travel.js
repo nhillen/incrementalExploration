@@ -22,7 +22,6 @@ class Travel {
     }
 
     getTravelCost(distance) {
-        console.log(this);
         return this.config.energyCostPerDistance * distance;
     }
 
@@ -37,4 +36,9 @@ class Travel {
     }
 }
 
-module.exports = Travel;
+// Support both browser and Node.js environments
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Travel;
+} else {
+    window.Travel = Travel;
+}

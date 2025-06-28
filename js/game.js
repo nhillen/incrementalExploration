@@ -164,10 +164,14 @@ function runGenericActivity(name){
 
             if (Array.isArray(rewards)) {
                 rewards.forEach(function (reward) {
+                    const amount =
+                        typeof reward.amount === "function"
+                            ? reward.amount()
+                            : reward.amount;
                     if (reward.type === "stat") {
-                        gainResource(character, reward.stat, reward.amount());
+                        gainResource(character, reward.stat, amount);
                     } else if (reward.type === "xp") {
-                        grantXP(character, reward.stat, reward.amount());
+                        grantXP(character, reward.stat, amount);
                     }
                 });
             }
