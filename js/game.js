@@ -19,7 +19,6 @@ let counters = {
 }
 
 const progressBar = document.querySelector('.progress-bar');
-const progressBarMaxWidth = progressBar.offsetWidth;
 const progressBarFill = document.querySelector('.progress-bar-fill');
 const progressBarValue = document.querySelector('.progress-bar-value');
 let progressBarTween = null;
@@ -213,6 +212,8 @@ function updateProgressBar(targetPercentage = null, duration = 1) {
         progressBarTween.kill();
     }
 
+    const maxWidth = progressBar.offsetWidth;
+
     progressBarTween = gsap.to(progressBarFill, {
         width: `${percentage}%`,
         duration: duration,
@@ -220,8 +221,11 @@ function updateProgressBar(targetPercentage = null, duration = 1) {
         opacity: 1,
         onUpdate: () => {
             const width = parseFloat(gsap.getProperty(progressBarFill, 'width'));
-            const pct = Math.floor((width / progressBarMaxWidth) * 100);
+            const pct = Math.floor((width / maxWidth) * 100);
             progressBarValue.innerHTML = `${pct}%`;
+        },
+        onComplete: () => {
+            progressBarValue.innerHTML = `${Math.floor(percentage)}%`;
         }
     });
 }
