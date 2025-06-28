@@ -18,6 +18,25 @@ let counters = {
     time: 0
 }
 
+function formatDuration(totalSeconds) {
+    const days = Math.floor(totalSeconds / 86400);
+    totalSeconds %= 86400;
+    const hours = Math.floor(totalSeconds / 3600);
+    totalSeconds %= 3600;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+
+    const parts = [];
+    if (days) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+    if (hours) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+    if (minutes) parts.push(`${minutes} minute${minutes === 1 ? '' : 's'}`);
+    if (seconds || parts.length === 0) parts.push(`${seconds} second${seconds === 1 ? '' : 's'}`);
+
+    if (parts.length === 1) return parts[0];
+    const last = parts.pop();
+    return parts.join(', ') + ' and ' + last;
+}
+
 const progressBar = document.querySelector('.progress-bar');
 const progressBarMaxWidth = progressBar.offsetWidth;
 const progressBarFill = document.querySelector('.progress-bar-fill');
@@ -369,7 +388,7 @@ function removeActivityButton(id) {
 
 /* Updates the information block with the character's stats and progress bar, and updates the activity message if necessary.*/
 function drawUI() {
-    let outputText = "<b>Current Session:</b> " + counters.time + " seconds" + "<br/>";
+    let outputText = "<b>Current Session:</b> " + formatDuration(counters.time) + "<br/>";
 
     outputText += "<h3>Stats</h3>";
     _.each(statsToDisplay, function(statType, statName){
@@ -377,7 +396,9 @@ function drawUI() {
             outputText += derivedStats[statName].value() + "<br/>";
         } else if (statType === "skill" && character.skills[statName]){
             let thisStat = character.skills[statName]
-            outputText += thisStat.statDisplayName + ": " + thisStat.level + " (" + thisStat.xp + "/" + thisStat.xpRequired + ")" + "<br/>";
+            const currentXp = Math.floor(thisStat.xp);
+            const requiredXp = Math.floor(thisStat.xpRequired);
+            outputText += thisStat.statDisplayName + ": " + thisStat.level + " (" + currentXp + "/" + requiredXp + ")" + "<br/>";
         } else {
             if((statDisplayName[statName]) && (character[statName])){
                 outputText += statDisplayName[statName] + ": " + character[statName]+"<br/>"
