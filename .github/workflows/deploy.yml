@@ -1,0 +1,48 @@
+# GitHub Actions Deploy Workflow
+#
+# Deploys to Hetzner server on push to master.
+#
+# Required GitHub Secrets (set in repo Settings > Secrets and variables > Actions):
+#   HETZNER_HOST     - Server IP: 162.55.62.129
+#   HETZNER_USER     - SSH user: root
+#   HETZNER_SSH_KEY  - Private SSH key (full contents including BEGIN/END)
+
+name: Deploy to Hetzner
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+env:
+  TARGET_DIR: /var/www/genericwebserver.com/incremental
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          source: "dist/*"
+          target: ${{ env.TARGET_DIR }}
+          strip_components: 1
+          rm: true  # Remove old files before copying new ones
