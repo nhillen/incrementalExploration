@@ -105,10 +105,10 @@ export interface ExhibitInstance {
 
   /exhibits
     ExhibitInterface.ts # The contract
-    /clicker            # First exhibit
+    /cupcake-clicker    # First exhibit (dummy/proof of concept)
       index.ts          # Implements ExhibitInterface
-      state.ts          # Clicker-specific state
-      ui.ts             # Clicker-specific UI
+      state.ts          # Cupcake-specific state
+      ui.ts             # Cupcake-specific UI
     /bakery             # Second exhibit (future)
     ...
 
@@ -134,29 +134,52 @@ export interface ExhibitInstance {
 
 ## Game Loop Strategy
 
+**Decision**: Hybrid catch-up approach
+- Calculate offline progress when switching to an exhibit
+- ALSO do periodic background catch-ups (every ~2-3 minutes) to enable notifications and make inactive exhibits feel "alive"
+
 ```typescript
 // Pseudocode
 class GameLoop {
   private exhibits: Map<string, ExhibitInstance>;
   private activeExhibitId: string | null;
+  private lastBackgroundTick: Map<string, number>;  // Track per-exhibit
+  private readonly BACKGROUND_INTERVAL = 2 * 60 * 1000; // 2 minutes
 
   tick(deltaMs: number) {
+    const now = Date.now();
+
     for (const [id, exhibit] of this.exhibits) {
       const isActive = id === this.activeExhibitId;
 
-      // Active exhibit: full speed updates
-      // Background exhibits: reduced tick rate OR catch-up on focus
       if (isActive) {
+        // Active exhibit: full speed updates every frame
         exhibit.update(deltaMs, true);
+        this.lastBackgroundTick.set(id, now);
       } else {
-        // Option A: Tick at reduced rate (e.g., every 1 second)
-        // Option B: Don't tick, calculate catch-up when switching to it
-        // Option C: Web Worker for background math (future optimization)
+        // Background exhibit: periodic catch-up ticks
+        const lastTick = this.lastBackgroundTick.get(id) || now;
+        if (now - lastTick >= this.BACKGROUND_INTERVAL) {
+          const catchUpMs = now - lastTick;
+          exhibit.update(catchUpMs, false);
+          this.lastBackgroundTick.set(id, now);
+          // Opportunity to show notification if milestones hit
+        }
       }
     }
 
     // Process passive income from archived exhibits
     this.curator.tickPassiveIncome(deltaMs);
+  }
+
+  // Called when switching to an exhibit - full catch-up
+  onExhibitFocus(exhibitId: string) {
+    const lastTick = this.lastBackgroundTick.get(exhibitId);
+    if (lastTick) {
+      const catchUpMs = Date.now() - lastTick;
+      this.exhibits.get(exhibitId)?.update(catchUpMs, false);
+    }
+    this.activeExhibitId = exhibitId;
   }
 }
 ```
@@ -192,31 +215,27 @@ Import = File picker + JSON.parse + validation
 
 ---
 
-## Open Questions for You
+## Design Decisions
 
-1. **Background simulation**: When player is in Exhibit A, should Exhibit B:
-   - A) Pause completely (simplest)
-   - B) Tick at reduced rate (medium complexity)
-   - C) Calculate catch-up time when switching (most "idle game" feel)
+1. **Background simulation**: ✅ Hybrid approach
+   - Calculate catch-up when switching to an exhibit
+   - Also do periodic background ticks (~every 2-3 min) for notifications/liveliness
 
-2. **Tab UI**: Are you envisioning:
-   - Browser-style tabs at the top?
-   - A sidebar gallery?
-   - Cards/tiles you click to enter?
+2. **Tab UI**: ✅ Start with tabs, iterate later
+   - May evolve to something more bespoke
 
-3. **Starting point**: Should we:
-   - A) Build the frame first (Curator, save system, empty lobby)
-   - B) Build a minimal "dummy clicker" exhibit first to prove the contract
-   - C) Both in parallel
+3. **Starting point**: ✅ Build dummy exhibit first
+   - "Cupcake Clicker" - proves the contract works
 
 ---
 
-## Suggested Implementation Order
+## Implementation Order
 
 1. **Core scaffold**: Vite + TS project setup, file structure
-2. **Curator + Types**: Define the interfaces, basic curator with credits
-3. **Dummy exhibit**: 10-click button that emits a milestone
-4. **Verify loop**: Click → milestone → credits → see it work
-5. **Save system**: LocalStorage persistence
-6. **Lobby UI**: Basic gallery showing the dummy exhibit
-7. **First real exhibit**: The Clicker archetype
+2. **Core types**: Define ExhibitInterface contract and shared types
+3. **Curator**: Basic meta layer with credits and modifiers
+4. **Cupcake Clicker**: Dummy exhibit that emits milestones
+5. **Game loop**: With background catch-up support
+6. **Lobby UI**: Basic tabs to switch between exhibits
+7. **Save system**: LocalStorage + export/import
+8. **Verify the loop**: Click → milestone → credits → upgrade → faster clicking
