@@ -1,18 +1,48 @@
-# incrementalExploration
+# Project Museum
 
-This project is a small JavaScript game. To publish the site using GitHub Pages you can create a `gh-pages` branch that contains the latest build of the web assets.
+A "Museum" of incremental game mechanics. Visit distinct "Exhibits," each a self-contained game representing a specific genre of idle gaming.
 
-## Publishing to GitHub Pages
+**The Twist:** Collect "Meta-Currency" from achievements within exhibits to buy system-level cheats. Play classic games, but use meta-level powers to break them, speed-run them, and eventually "solve" them.
 
-A helper script `publish-gh-pages.sh` is included for convenience. It uses a temporary `git worktree` to update the `gh-pages` branch.
-
-Run the following commands from the repository root:
+## Quick Start
 
 ```bash
-# First time setup (creates the branch if it doesn't exist)
-./publish-gh-pages.sh
+npm install
+npm run dev
 ```
 
-This will copy `index.html`, `css`, `js`, `modules`, and the `docs` folder to the `gh-pages` branch and push it to `origin`.
+Open http://localhost:5173 in your browser.
 
-After running the script, configure GitHub Pages in the repository settings to serve from the `gh-pages` branch.
+## Architecture
+
+See [docs/architecture-plan.md](docs/architecture-plan.md) for the full technical design.
+
+### Key Concepts
+
+- **Exhibits**: Self-contained mini-games implementing the `ExhibitInterface` contract
+- **Curator**: Meta layer managing Museum Credits and global modifiers
+- **Game Loop**: Handles active updates + background catch-up for idle games
+
+### Project Structure
+
+```
+src/
+  core/           # Meta layer (Curator, GameLoop, SaveManager)
+  exhibits/       # Individual mini-games
+  ui/             # Lobby and shared UI components
+  styles/         # CSS
+docs/             # Design documents
+legacy/           # Old codebase (for reference)
+```
+
+## Current Exhibits
+
+- **Cupcake Clicker** - Click cupcakes, earn milestones, get credits
+
+## Development
+
+```bash
+npm run dev      # Start dev server
+npm run build    # Production build
+npm run preview  # Preview production build
+```
