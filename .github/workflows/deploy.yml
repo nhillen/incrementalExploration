@@ -15,7 +15,10 @@ on:
   workflow_dispatch:  # Allow manual trigger from GitHub UI
 
 env:
-  TARGET_DIR: /var/www/nathanhillen.com/incremental
+  # Assets path (CSS/JS served directly without rewrite)
+  ASSETS_DIR: /var/www/nathanhillen.com/incremental
+  # HTML path (served via Caddy rewrite from /incremental/ -> /genericwebserver.com/incremental/)
+  HTML_DIR: /var/www/nathanhillen.com/genericwebserver.com/incremental
 
 jobs:
   deploy:
@@ -36,13 +39,24 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy to server
+      - name: Deploy assets to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HETZNER_HOST }}
           username: ${{ secrets.HETZNER_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
           source: "dist/"
-          target: ${{ env.TARGET_DIR }}
+          target: ${{ env.ASSETS_DIR }}
           strip_components: 1
           rm: true
+
+      - name: Deploy HTML to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          source: "dist/index.html"
+          target: ${{ env.HTML_DIR }}
+          strip_components: 1
+          overwrite: true
