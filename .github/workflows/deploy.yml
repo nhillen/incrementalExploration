@@ -36,6 +36,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: List build output
+        run: find dist -type f
+
       - name: Deploy to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -45,4 +48,15 @@ jobs:
           source: "dist/"
           target: ${{ env.TARGET_DIR }}
           strip_components: 1
-          rm: true  # Remove old files before copying new ones
+          rm: true
+          debug: true
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script: |
+            echo "Contents of ${{ env.TARGET_DIR }}:"
+            find ${{ env.TARGET_DIR }} -type f
