@@ -221,7 +221,44 @@ export function createCupcakeClicker(): ExhibitInstance {
       cpsEl.textContent = `per second: ${formatNumber(cps)}`;
     }
     updateBuildingButtons();
-    updateUpgradeButtons();
+    // Only update upgrade affordability, don't recreate buttons
+    updateUpgradeAffordability();
+  }
+
+  // Rebuild upgrade list only when upgrades change (purchase/unlock)
+  function rebuildUpgradeList(): void {
+    if (!upgradesContainer) return;
+    upgradesContainer.innerHTML = '';
+
+    for (const upgrade of UPGRADES) {
+      if (state.purchasedUpgrades.includes(upgrade.id)) continue;
+      if (!upgrade.unlockCondition(state)) continue;
+
+      const canAfford = state.cupcakes >= upgrade.cost;
+      const btn = document.createElement('button');
+      btn.className = `upgrade-btn ${canAfford ? 'affordable' : 'disabled'}`;
+      btn.dataset.upgradeId = upgrade.id;
+      btn.dataset.cost = String(upgrade.cost);
+      btn.innerHTML = `
+        <div class="upgrade-name">${upgrade.name}</div>
+        <div class="upgrade-desc">${upgrade.description}</div>
+        <div class="upgrade-cost">${formatNumber(upgrade.cost)}</div>
+      `;
+      btn.addEventListener('click', () => buyUpgrade(upgrade));
+      upgradesContainer.appendChild(btn);
+    }
+  }
+
+  // Just update affordability without recreating buttons
+  function updateUpgradeAffordability(): void {
+    if (!upgradesContainer) return;
+    const buttons = upgradesContainer.querySelectorAll('.upgrade-btn');
+    buttons.forEach((btn) => {
+      const cost = Number(btn.getAttribute('data-cost'));
+      const canAfford = state.cupcakes >= cost;
+      btn.classList.toggle('affordable', canAfford);
+      btn.classList.toggle('disabled', !canAfford);
+    });
   }
 
   function updateBuildingButtons(): void {
@@ -240,27 +277,6 @@ export function createCupcakeClicker(): ExhibitInstance {
       const countEl = btn.querySelector('.building-count');
       if (countEl) countEl.textContent = String(state.buildings[def.id] || 0);
     });
-  }
-
-  function updateUpgradeButtons(): void {
-    if (!upgradesContainer) return;
-    upgradesContainer.innerHTML = '';
-
-    for (const upgrade of UPGRADES) {
-      if (state.purchasedUpgrades.includes(upgrade.id)) continue;
-      if (!upgrade.unlockCondition(state)) continue;
-
-      const canAfford = state.cupcakes >= upgrade.cost;
-      const btn = document.createElement('button');
-      btn.className = `upgrade-btn ${canAfford ? 'affordable' : 'disabled'}`;
-      btn.innerHTML = `
-        <div class="upgrade-name">${upgrade.name}</div>
-        <div class="upgrade-desc">${upgrade.description}</div>
-        <div class="upgrade-cost">${formatNumber(upgrade.cost)}</div>
-      `;
-      btn.addEventListener('click', () => buyUpgrade(upgrade));
-      upgradesContainer.appendChild(btn);
-    }
   }
 
   function handleClick(): void {
@@ -289,6 +305,7 @@ export function createCupcakeClicker(): ExhibitInstance {
       state.cupcakes -= cost;
       state.buildings[def.id] = (state.buildings[def.id] || 0) + 1;
       updateDisplay();
+      rebuildUpgradeList(); // New building might unlock upgrades
       checkMilestones();
     }
   }
@@ -299,6 +316,7 @@ export function createCupcakeClicker(): ExhibitInstance {
       state.purchasedUpgrades.push(upgrade.id);
       upgrade.effect(state);
       updateDisplay();
+      rebuildUpgradeList(); // Remove purchased upgrade from list
       checkMilestones();
     }
   }
@@ -421,6 +439,7 @@ export function createCupcakeClicker(): ExhibitInstance {
       container.appendChild(shopArea);
 
       updateDisplay();
+      rebuildUpgradeList();
       return container;
     },
 
