@@ -97,29 +97,51 @@ body {
 
 /* Cupcake Clicker specific */
 .cupcake-clicker {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+  min-height: 500px;
+}
+
+@media (max-width: 768px) {
+  .cupcake-clicker {
+    grid-template-columns: 1fr;
+  }
+}
+
+.clicker-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  justify-content: center;
+  gap: 1rem;
+  position: relative;
 }
 
 .cupcake-counter {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: bold;
+  text-align: center;
+}
+
+.cupcake-cps {
+  font-size: 1rem;
+  color: var(--text-secondary);
 }
 
 .cupcake-button {
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   border: 4px solid var(--accent);
   background: linear-gradient(135deg, #f8b4c4, #e94560);
   cursor: pointer;
-  font-size: 4rem;
+  font-size: 5rem;
   transition: transform 0.1s, box-shadow 0.1s;
   display: flex;
   align-items: center;
   justify-content: center;
+  user-select: none;
 }
 
 .cupcake-button:hover {
@@ -129,6 +151,162 @@ body {
 
 .cupcake-button:active {
   transform: scale(0.95);
+}
+
+/* Click pop animation */
+.click-pop {
+  position: absolute;
+  color: var(--gold);
+  font-weight: bold;
+  font-size: 1.5rem;
+  pointer-events: none;
+  animation: popUp 0.8s ease-out forwards;
+  top: 30%;
+}
+
+@keyframes popUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-60px); }
+}
+
+/* Shop area */
+.shop-area {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.shop-area h3 {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Upgrades */
+.upgrades-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  min-height: 20px;
+}
+
+.upgrade-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--accent-soft);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.upgrade-btn.affordable {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, var(--accent-soft), #6b3fa0);
+}
+
+.upgrade-btn.affordable:hover {
+  transform: translateX(4px);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.upgrade-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upgrade-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.upgrade-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.upgrade-cost {
+  font-size: 0.8rem;
+  color: var(--gold);
+  margin-top: 0.25rem;
+}
+
+/* Buildings */
+.buildings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.building-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-card);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.building-btn.affordable {
+  border-color: var(--accent);
+}
+
+.building-btn.affordable:hover {
+  transform: translateX(4px);
+  background: #1a4a70;
+}
+
+.building-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.building-emoji {
+  font-size: 1.75rem;
+  width: 40px;
+  text-align: center;
+}
+
+.building-info {
+  flex: 1;
+  text-align: left;
+}
+
+.building-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.building-cps {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.building-right {
+  text-align: right;
+}
+
+.building-cost {
+  font-size: 0.85rem;
+  color: var(--gold);
+}
+
+.building-count {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--text-primary);
 }
 
 .milestones-list {
