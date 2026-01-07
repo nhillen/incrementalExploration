@@ -15,7 +15,7 @@ on:
   workflow_dispatch:  # Allow manual trigger from GitHub UI
 
 env:
-  TARGET_DIR: /var/www/nathanhillen.com/genericwebserver.com/incremental
+  TARGET_DIR: /var/www/nathanhillen.com/incremental
 
 jobs:
   deploy:
@@ -36,9 +36,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: List build output
-        run: find dist -type f
-
       - name: Deploy to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -49,17 +46,3 @@ jobs:
           target: ${{ env.TARGET_DIR }}
           strip_components: 1
           rm: true
-          debug: true
-
-      - name: Verify deployment
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HETZNER_HOST }}
-          username: ${{ secrets.HETZNER_USER }}
-          key: ${{ secrets.HETZNER_SSH_KEY }}
-          script: |
-            echo "Contents of ${{ env.TARGET_DIR }}:"
-            find ${{ env.TARGET_DIR }} -type f
-            echo ""
-            echo "Caddy config for genericwebserver.com:"
-            grep -A 20 "genericwebserver.com" /etc/caddy/Caddyfile || cat /etc/caddy/Caddyfile
