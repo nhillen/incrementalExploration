@@ -60,3 +60,6 @@ jobs:
           script: |
             echo "Contents of ${{ env.TARGET_DIR }}:"
             find ${{ env.TARGET_DIR }} -type f
+            echo ""
+            echo "Caddy config for genericwebserver.com:"
+            grep -A 20 "genericwebserver.com" /etc/caddy/Caddyfile || cat /etc/caddy/Caddyfile
