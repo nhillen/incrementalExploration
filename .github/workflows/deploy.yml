@@ -42,7 +42,7 @@ jobs:
           host: ${{ secrets.HETZNER_HOST }}
           username: ${{ secrets.HETZNER_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
-          source: "dist/*"
+          source: "dist/"
           target: ${{ env.TARGET_DIR }}
           strip_components: 1
           rm: true  # Remove old files before copying new ones
