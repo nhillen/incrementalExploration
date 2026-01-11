@@ -1,115 +1,176 @@
-# Game Design Document: Project Museum
+# Project Museum: Game Design Document
 
-## 1. High-Level Concept
+## Core Concept: The Onion Peel
 
-**The Pitch:** A "Museum" of incremental game mechanics. The player visits distinct "Exhibits," each a self-contained game representing a specific genre of idle gaming (Clicker, RPG, Loop, Puzzle).
+**What players think they're playing:** A cookie clicker clone.
 
-**The Twist:** The player collects "Meta-Currency" from achievements within exhibits to buy **System-Level Cheats**. You play classic games, but you use modern, meta-level powers to break them, speed-run them, and eventually "solve" them.
+**What they're actually playing:** A meta-game about incremental games, revealed through progression.
 
-## 2. Core Gameplay Loop
+**The Hook:** Players invest 2-3 days into what appears to be a standard cookie clicker. When they reach the "prestige" moment, the game reveals its true nature - they've been playing in one universe of a multiverse of incremental games, and their progress has earned them passage to the meta-layer.
 
-The game operates on a strictly separated **Hub & Spoke** model.
+---
 
-1. **Enter Exhibit:** Player selects a module (e.g., "The Bakery") from the Museum Lobby.
-2. **Active Play:** Player engages with the specific mechanics of that module (clicking, buying buildings).
-3. **Milestones (The Uplink):** The module does *not* export gold/cookies. It exports **Milestone Signals** (e.g., "Baked 1 Million Items").
-4. **Meta Reward:** Milestones grant **Museum Credits**.
-5. **Meta Upgrade (The Downlink):** Player spends Credits in the Lobby on **Global Artifacts** (e.g., "Global Speed +50%", "Auto-Clicker 2.0").
-6. **Retirement (The End State):** Once an Exhibit is mastered, it is "Archived." It is removed from active play and becomes a passive generator of Museum Credits.
+## Progression Structure
 
-## 3. Systems Architecture (The "Contract")
+### Layer 0: The Gateway Game (Cookie Clicker)
 
-To allow for distinct game types (Godot implementation), we treat every game as a **Black Box**.
+**Duration:** 2-3 days of active/idle play
 
-### A. The Module (The Exhibit)
+**Experience:** A complete, legitimate cookie clicker with:
+- Click to bake
+- Buildings (Cursor, Grandma, Farm, Factory, etc.)
+- Upgrades that boost production
+- Achievements
+- Standard prestige system (Heavenly Chips equivalent)
 
-Every mini-game (scene) must implement this strict interface:
+**The player should feel:** "This is a solid cookie clicker clone."
 
-* **Inputs (Global Modifiers):** The module must accept a dictionary of buffs from the Meta.
-  * *Example:* `Game.start( global_speed_mult: 2.0, auto_click_rate: 5 )`
+**No hints of the meta-game.** The UI is cookie clicker. The mechanics are cookie clicker. The only thing slightly off might be the game's name or occasional cryptic flavor text that makes sense in retrospect.
 
-* **Outputs (Signals):** The module never touches the global wallet. It only emits status updates.
-  * *Example:* `signal milestone_unlocked(id: String)`
+**Endgame trigger:** When the player reaches a specific milestone (e.g., "Baked 1 Trillion Cookies" or "Owned 100 of every building"), a new button appears:
 
-* **State:** The module manages its own save data.
-  * *Example:* `func get_save_blob()` and `func load_save_blob()`
+> **「 TRANSCEND 」**
+> *"You've mastered this reality. What lies beyond?"*
 
-### B. The Meta Layer (The Curator)
+---
 
-The Meta layer handles the economy outside the games.
+### Layer 1: The Reveal (Multiversal Store)
 
-* **The Ticket Counter:** Stores the **Museum Credits** (Hard Currency).
-* **The Collection:** A list of `Resource` files defining which Exhibits are unlocked.
-* **The Modifier Engine:** Calculates the total "Cheat" values (Speed, Luck, Automation) based on purchased upgrades and passes them down to the active Exhibit.
+**The Transcend moment:**
+1. Screen glitches/distorts
+2. Cookie clicker UI fades/shatters
+3. New UI emerges - The Multiversal Store
+4. Text: *"Welcome, Traveler. Universe #247 has been archived."*
 
-## 4. Progression Mechanics
+**What the player receives:**
+- **Transcendence Points (TP)** - Meta-currency based on their cookie clicker progress
+- Access to the **Multiversal Store**
+- Their cookie clicker save is "archived" (can be revisited but is essentially complete)
 
-### Phase 1: Exploration (Active)
+**The Multiversal Store offers:**
+- **Universal Modifiers** - Buffs that apply to ALL games (click power, speed, luck)
+- **New Universes** - Other incremental games to unlock and play
+- **Cosmetics/Meta upgrades** - UI themes, automation tools, quality-of-life
+- **Mysteries** - Locked options that hint at deeper layers
 
-* Player enters a fresh Exhibit.
-* Progress is slow/standard.
-* Player earns early Milestones → buys generic Meta Upgrades (e.g., "Start next run with 10% resources").
+---
 
-### Phase 2: Domination (Synergy)
+### Layer 2+: The Multiverse
 
-* Player returns to the Exhibit with Meta Upgrades.
-* The game is now faster/easier than the original design intended.
-* Player hits high-tier Milestones → unlocks "Specific Artifacts" (e.g., "Unlocks the Auto-Buyer logic for all Exhibits").
+Each unlocked universe is a different incremental game archetype:
 
-### Phase 3: Archival (Passive)
+| Universe | Archetype | Unlock Cost | Duration |
+|----------|-----------|-------------|----------|
+| #247 | Clicker (Gateway) | Free | 2-3 days |
+| #891 | Idle/Management | 100 TP | 3-4 days |
+| #156 | RPG/Combat Loop | 250 TP | 4-5 days |
+| #042 | Puzzle/Optimization | 500 TP | 3-4 days |
+| #??? | ??? | 1000 TP | ??? |
 
-* **Trigger:** Player completes 100% of an Exhibit's Milestones.
-* **Effect:** The Exhibit gets a "Gold Frame" in the menu.
-* **Benefit:** The player no longer needs to enter the Exhibit. The Exhibit now generates a flat rate of Museum Credits per second, simulating "Ticket Sales" from visitors coming to see your completed work.
-* **Why this works:** It prevents "tab fatigue." You don't have 10 tabs open; you have 1 active game and 5 "retired" games paying your salary.
+**Completing each universe:**
+- Grants a large TP payout
+- Unlocks universe-specific modifiers
+- Contributes to "Multiverse Completion %"
 
-## 5. UI/UX Hierarchy
+**Cross-universe synergies:**
+- Universal Modifiers apply everywhere
+- Some universes have unique bonuses: "Universe #891: +10% offline progress everywhere"
 
-### The Lobby (Main Menu)
+---
 
-* **The Gallery:** A scrolling list or map of Exhibits.
-  * *Visuals:* Locked exhibits are shrouded. Completed exhibits are Gold. Active exhibits show a progress bar (e.g., "45/100 Milestones").
+### Layer 3+: Deeper Reveals (Future)
 
-* **The Gift Shop (Upgrades):**
-  * **Tools:** Global buffs (Speed, Click Power).
-  * **Tickets:** Unlock new Exhibits.
-  * **Automation:** Unlocks logic (Auto-buyers, Macros).
+As players complete more universes:
+- **Online features unlock** - Leaderboards, cooperative events
+- **The Museum manifests** - Hub world where completed universes become exhibits
+- **The Meta-Narrative** - Why are there multiple universes? Who is the Curator?
+- **Endgame** - Something that ties it all together
 
-### The Overlay (HUD)
+---
 
-When inside an Exhibit, a small, collapsible "Meta-HUD" sits on top of the game (Z-Index max).
+## Technical Architecture
 
-* **Back to Museum:** Exit button.
-* **Milestone Tracker:** "Next Reward at: 1 Billion Cookies."
-* **Active Modifiers:** A tooltip showing "Global Speed: 2.5x active."
+### Core Systems (Already Built)
 
-## 6. Technical Definition (Godot)
+These remain valid:
 
-We will use a **Resource-based approach** to define the game structure without hardcoding.
+- **Curator** → Becomes "Multiversal Store" manager
+- **ExhibitInterface** → Contract for each "Universe"
+- **GameLoop** → Handles active + background universe updates
+- **SaveManager** → Persists all universe states
 
-**File:** `ExhibitDef.gd` (Resource)
+### Key Changes from Original Design
 
-```gdscript
-extends Resource
-class_name ExhibitDef
+1. **No Lobby at Start**
+   - Game boots directly into Cookie Clicker
+   - Multiversal Store only appears after first Transcendence
 
-@export_group("Meta Data")
-@export var id: String = "exhibit_01"
-@export var title: String = "The Bakery"
-@export var icon: Texture2D
-@export var scene_path: String = "res://games/bakery/main.tscn"
+2. **Progressive UI Unlocks**
+   - Cookie Clicker UI is self-contained
+   - Store UI appears as overlay/replacement after Transcend
+   - Future: Upgrade Complete style - buy UI elements
 
-@export_group("Economy")
-@export var unlock_cost: int = 100
-@export var passive_income_on_retirement: int = 10
+3. **Transcendence System**
+   - New module handling gateway → reveal transition
+   - Calculates TP payout based on progress
+   - Triggers reveal animation/narrative
 
-@export_group("Milestones")
-@export var milestones: Array[MilestoneResource] # Array of achievements
-```
+4. **Universe State Machine**
+   ```
+   LOCKED → ACTIVE → TRANSCENDED → ARCHIVED
 
-## 7. Next Steps (Development Roadmap)
+   LOCKED: Not yet accessible
+   ACTIVE: Player is progressing
+   TRANSCENDED: Completed, claimed TP
+   ARCHIVED: Generates passive TP, can revisit
+   ```
 
-1. **Build the Frame:** Create the Lobby, the Save System, and the "Meta Wallet."
-2. **Build the "Dummy" Exhibit:** A minimal button-clicker that just implements the Contract (emits a signal when clicked 10 times).
-3. **Verify the Loop:** Ensure clicking the dummy → getting the milestone → getting credits → buying an upgrade works.
-4. **Develop Exhibit A:** The first real game (The "Clicker" archetype).
+---
+
+## MVP Milestone
+
+**Goal:** Playable cookie clicker that leads to the reveal.
+
+### Phase 1: Cookie Clicker (Complete Game)
+- **Buildings:** Cursor, Grandma, Farm, Factory, Mine, Bank (6 tiers)
+- **Upgrades:** ~20 upgrades across buildings + click power
+- **Achievements:** 15-20 achievements
+- **Transcend trigger:** Button appears at 1 Trillion cookies
+
+### Phase 2: The Reveal (Basic)
+- Transition animation (simple initially)
+- TP calculation and display
+- Basic Multiversal Store UI
+
+### Phase 3: Proof of Loop
+- One purchasable Universal Modifier
+- Verify modifier applies when revisiting Cookie Clicker
+- Basic "archived universe" state
+
+---
+
+## Open Questions
+
+1. **Revisiting Transcended universes?**
+   - With all progress + universal modifiers?
+   - New Game+ style reset?
+   - Archived forever (passive TP only)?
+
+2. **Multiple Transcendences from same universe?**
+   - Grind Cookie Clicker for more TP?
+   - Diminishing returns? One-time payout?
+
+3. **Meta-narrative tone?**
+   - Cryptic hints only?
+   - Actual story/characters?
+   - Player-discovered lore?
+
+---
+
+## References
+
+- **A Dark Room** - Layered reveal, starts simple
+- **Candy Box** - Absurdist reveal, hidden depth
+- **Cookie Clicker** - The base we're subverting
+- **Upgrade Complete** - Meta-game about buying the game itself
+- **Universal Paperclips** - Narrative through mechanics
