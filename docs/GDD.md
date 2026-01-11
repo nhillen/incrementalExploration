@@ -44,27 +44,43 @@ Cookie Clicker has TWO reset options that unlock at different thresholds:
 
 **Player perception:** "Normal prestige mechanic, just like real Cookie Clicker."
 
-#### Transcend (Multiverse Exit - Unlocks Later)
+#### Transcend (The Strange Merchant - Unlocks Later)
 
 **Trigger:** ~1 Trillion cookies baked lifetime (or X prestiges completed)
 
-**What it does:**
-- Exits Cookie Clicker entirely
-- Awards **Transcendence Points (TP)** based on:
+**Narrative:** Instead of a meta "TRANSCEND" button, an in-universe event appears:
+
+> **A Strange Merchant Arrives**
+>
+> *A figure in a shifting cloak appears at your bakery's door.*
+>
+> "Greetings, baker. I have traveled through... many places... to find an empire such as yours. Your cookies echo across realities."
+>
+> "I offer you something beyond flour and sugar. Beyond this world. Sell me your bakery, and I will show you what lies beneath the oven's glow."
+>
+> **[Accept the Merchant's Offer]**
+> **[Decline]** *"Perhaps when you've grown further..."*
+
+**If declined:** The merchant vanishes but returns periodically. Each return, the offer becomes slightly more enticing (more TP offered based on current progress).
+
+**If accepted:**
+- Screen distorts, bakery "sells"
+- Reality fractures
+- Multiverse reveal: "Transaction complete. Welcome to the space between worlds."
+- Player receives **Transcendence Points (TP)** based on:
   - Total cookies baked
   - Heavenly Chips accumulated
   - Achievements unlocked
   - Time played
-- Opens the Multiversal Store
-- Cookie Clicker becomes "archived" (can revisit but progress is frozen)
+- Cookie Clicker becomes "archived"
 
-**Button appearance:**
-> **「 TRANSCEND 」**
-> *"You've mastered this reality. What lies beyond?"*
+**Why this works:**
+- Player thinks it's just a weird random event
+- Stays in-universe until the moment of reveal
+- The "decline" option makes accepting feel like a choice, not a forced progression
+- Returning merchant creates FOMO and builds mystery
 
-**Player choice:** Keep prestiging in CC for more power, or cash out to the multiverse?
-
-**Incentive to wait:** More CC progress = more TP. But there's a soft cap / diminishing returns so players don't feel forced to grind forever.
+**Incentive to wait:** More CC progress = better offer from the merchant. But diminishing returns so players don't grind forever.
 
 ---
 
