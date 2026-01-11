@@ -21,16 +21,50 @@
 - Buildings (Cursor, Grandma, Farm, Factory, etc.)
 - Upgrades that boost production
 - Achievements
-- Standard prestige system (Heavenly Chips equivalent)
 
 **The player should feel:** "This is a solid cookie clicker clone."
 
 **No hints of the meta-game.** The UI is cookie clicker. The mechanics are cookie clicker. The only thing slightly off might be the game's name or occasional cryptic flavor text that makes sense in retrospect.
 
-**Endgame trigger:** When the player reaches a specific milestone (e.g., "Baked 1 Trillion Cookies" or "Owned 100 of every building"), a new button appears:
+---
 
+### The Dual Prestige System
+
+Cookie Clicker has TWO reset options that unlock at different thresholds:
+
+#### Prestige (Local Meta - Unlocks First)
+
+**Trigger:** ~1 Billion cookies baked lifetime
+
+**What it does:**
+- Resets Cookie Clicker progress (buildings, upgrades)
+- Awards **Heavenly Chips** based on cookies baked
+- Heavenly Chips buy **Heavenly Upgrades** (CC-specific permanent bonuses)
+- Standard prestige loop - players can grind this indefinitely
+
+**Player perception:** "Normal prestige mechanic, just like real Cookie Clicker."
+
+#### Transcend (Multiverse Exit - Unlocks Later)
+
+**Trigger:** ~1 Trillion cookies baked lifetime (or X prestiges completed)
+
+**What it does:**
+- Exits Cookie Clicker entirely
+- Awards **Transcendence Points (TP)** based on:
+  - Total cookies baked
+  - Heavenly Chips accumulated
+  - Achievements unlocked
+  - Time played
+- Opens the Multiversal Store
+- Cookie Clicker becomes "archived" (can revisit but progress is frozen)
+
+**Button appearance:**
 > **「 TRANSCEND 」**
 > *"You've mastered this reality. What lies beyond?"*
+
+**Player choice:** Keep prestiging in CC for more power, or cash out to the multiverse?
+
+**Incentive to wait:** More CC progress = more TP. But there's a soft cap / diminishing returns so players don't feel forced to grind forever.
 
 ---
 
@@ -156,14 +190,15 @@ These remain valid:
    - New Game+ style reset?
    - Archived forever (passive TP only)?
 
-2. **Multiple Transcendences from same universe?**
-   - Grind Cookie Clicker for more TP?
-   - Diminishing returns? One-time payout?
-
-3. **Meta-narrative tone?**
+2. **Meta-narrative tone?**
    - Cryptic hints only?
    - Actual story/characters?
    - Player-discovered lore?
+
+3. **What carries over vs resets on Prestige?**
+   - Achievements persist?
+   - Some buildings unlock permanently?
+   - Prestige multiplier calculation formula?
 
 ---
 
